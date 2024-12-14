@@ -44,8 +44,14 @@ class _ChatMessagesState extends State<ChatMessages> {
   String otherSymptoms = '';
   bool showSymptoms = false;
   bool dataSent = false; // Control para verificar si se han enviado los datos
-  final List<Map<String, dynamic>> medicalTests = []; // Lista de pruebas médicas
-  final Set<String> completedTests = {}; // Añadir esta línea para trackear pruebas completadas
+  final List<Map<String, dynamic>> medicalTests =
+      []; // Lista de pruebas médicas
+  final Set<String> completedTests =
+      {}; // Añadir esta línea para trackear pruebas completadas
+  bool showDiagnosisForm = false;
+  final TextEditingController _diagnosisController = TextEditingController();
+  bool diagnosesShown = false; // Añadir esta variable
+  bool diagnosisCompleted = false; // Añadir esta variable
 
   final String apiKey =
       'v2-wZX9sx0k1JffHejsM4WZnnymKxo7yYjc9eLaqVCzojf8qi7w'; // Reemplaza con tu API key de Straico
@@ -129,7 +135,8 @@ class _ChatMessagesState extends State<ChatMessages> {
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        final message = data['data']['completion']['choices'][0]['message']['content'];
+        final message =
+            data['data']['completion']['choices'][0]['message']['content'];
 
         // Extraer el JSON de la respuesta usando expresión regular
         final jsonMatch = RegExp(r'\[.*\]', dotAll: true).firstMatch(message);
@@ -139,8 +146,11 @@ class _ChatMessagesState extends State<ChatMessages> {
             final List<dynamic> parsedTests = jsonDecode(jsonString!);
             setState(() {
               medicalTests.clear(); // Limpiar tests anteriores
-              medicalTests.addAll(parsedTests.map((test) => Map<String, dynamic>.from(test)));
-              medicalTests.sort((a, b) => _priorityValue(b['prioritat']).compareTo(_priorityValue(a['prioritat'])));
+              medicalTests.addAll(
+                  parsedTests.map((test) => Map<String, dynamic>.from(test)));
+              medicalTests.sort((a, b) => _priorityValue(b['prioritat'])
+                  .compareTo(_priorityValue(a['prioritat'])));
+              diagnosesShown = true; // Marcar que los diagnósticos se han mostrado
             });
           } catch (e) {
             developer.log('Error parsing JSON: $e');
@@ -169,11 +179,28 @@ class _ChatMessagesState extends State<ChatMessages> {
 
   void _sendTestResult(String testName, String result) {
     String resultMessage = 'Resultat de la prova $testName:\n$result';
-    developer.log(resultMessage);
 
     setState(() {
       chatMessages.add(resultMessage.trim());
-      completedTests.add(testName); // Añadir la prueba a la lista de completadas
+      completedTests.add(testName);
+      
+      // Eliminar la prueba completada de la lista de pruebas pendientes
+      medicalTests.removeWhere((test) => test['nom_prova'] == testName);
+
+      // Verificar si todas las pruebas han sido completadas o eliminadas
+      if (medicalTests.isEmpty) {
+        showDiagnosisForm = true;
+      }
+    });
+  }
+
+  void _removeTest(String testName) {
+    setState(() {
+      medicalTests.removeWhere((test) => test['nom_prova'] == testName);
+      // Verificar si ya no quedan pruebas después de eliminar
+      if (medicalTests.isEmpty) {
+        showDiagnosisForm = true; // Mostrar formulario de diagnóstico si no quedan pruebas
+      }
     });
   }
 
@@ -340,8 +367,61 @@ Respon únicament en aquest format JSON:
     }
   }
 
+  Future<void> _getDiagnosisSuggestion() async {
+    String prompt = '''
+Tenint en compte les dades del pacient amb MPID:
+${chatMessages.join('\n')}
+
+Proporciona un diagnòstic breu i concís basat en:
+1. Els símptomes inicials
+2. Les constants vitals
+3. Els resultats de les proves realitzades
+
+Resposta en català, màxim 3-4 línies.
+''';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.straico.com/v0/prompt/completion'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'anthropic/claude-3.5-sonnet',
+          'message': prompt,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final suggestion =
+            data['data']['completion']['choices'][0]['message']['content'];
+        _diagnosisController.text = suggestion.trim();
+      }
+    } catch (e) {
+      developer.log('Error getting diagnosis suggestion: $e');
+    }
+  }
+
+  void _sendDiagnosis() {
+    if (_diagnosisController.text.isEmpty) return;
+
+    setState(() {
+      chatMessages.add('DIAGNÒSTIC FINAL:\n\n${_diagnosisController.text}');
+      showDiagnosisForm = false;
+      diagnosisCompleted = true; // Marcar que el diagnóstico está completado
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Modificar la condición para mostrar el diagnóstico
+    bool shouldShowDiagnosis = medicalTests.isEmpty && 
+                             !showDiagnosisForm && 
+                             diagnosesShown &&
+                             !diagnosisCompleted; // Añadir esta condición
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -438,25 +518,104 @@ Respon únicament en aquest format JSON:
               ],
             ),
           ),
-        ...medicalTests
-            .where((test) => !completedTests.contains(test['nom_prova'])) // Filtrar pruebas completadas
-            .map((test) => MedicalTestCard(
-                  test: test,
-                  onResultSubmit: _sendTestResult,
-                )),
+        // Mostrar las pruebas pendientes
+        ...medicalTests.map((test) => MedicalTestCard(
+              test: test,
+              onResultSubmit: _sendTestResult,
+              onRemove: _removeTest,
+            )),
+
+        // Mostrar el botón de diagnóstico cuando no queden pruebas
+        if (shouldShowDiagnosis)
+          Padding(
+            padding: const EdgeInsets.only(top: 16.0),
+            child: SystemMessage(
+              title: 'Diagnòstic',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Totes les proves s\'han completat o descartat. Vols procedir amb el diagnòstic?',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => setState(() => showDiagnosisForm = true),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF007AFF),
+                      minimumSize: const Size(double.infinity, 45),
+                    ),
+                    child: const Text('Introduir diagnòstic'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        if (showDiagnosisForm)
+          SystemMessage(
+            title: 'Diagnòstic Final',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: _diagnosisController,
+                  decoration: InputDecoration(
+                    hintText: 'Escriu el diagnòstic...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  maxLines: null,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _sendDiagnosis,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF007AFF),
+                          minimumSize: const Size(double.infinity, 45),
+                        ),
+                        child: const Text('Enviar diagnòstic'),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _getDiagnosisSuggestion,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey[200],
+                        minimumSize: const Size(45, 45),
+                      ),
+                      child:
+                          const Icon(Icons.psychology, color: Colors.black54),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _diagnosisController.dispose();
+    super.dispose();
   }
 }
 
 class MedicalTestCard extends StatefulWidget {
   final Map<String, dynamic> test;
   final Function(String, String) onResultSubmit;
+  final Function(String) onRemove;
 
   const MedicalTestCard({
     Key? key,
     required this.test,
     required this.onResultSubmit,
+    required this.onRemove,
   }) : super(key: key);
 
   @override
@@ -522,27 +681,39 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getPriorityBorderColor(),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  widget.test['prioritat'] ?? 'SENSE PRIORITAT',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => widget.onRemove(widget.test['nom_prova']),
+                    color: Colors.red,
+                    tooltip: 'No es pot realitzar la prova',
                   ),
-                ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _getPriorityBorderColor(),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      widget.test['prioritat'] ?? 'SENSE PRIORITAT',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
           const SizedBox(height: 8),
           Text('Raó: ${widget.test['rao_prova'] ?? 'No especificada'}'),
           const SizedBox(height: 8),
-          Text('Objectiu: ${widget.test['objectiu_prova'] ?? 'No especificat'}'),
+          Text(
+              'Objectiu: ${widget.test['objectiu_prova'] ?? 'No especificat'}'),
           const SizedBox(height: 16),
           CheckboxListTile(
             title: const Text('Marcar com completada'),
