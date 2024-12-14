@@ -16,21 +16,26 @@ class ConfigPage extends StatefulWidget {
 
 class _ConfigPageState extends State<ConfigPage> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _surnameController = TextEditingController();
+  final _healthCardController = TextEditingController();
   final _epiController = TextEditingController();
   final _causasController = TextEditingController();
   final _tratamientoController = TextEditingController();
-  final _inmunosupresionController = TextEditingController();
   final _comorbilidadesController = TextEditingController();
+  bool _inmunosupresion = false;
   bool _loading = false;
   String? _qrUuid;
   String? _accessCode;
 
   @override
   void dispose() {
+    _nameController.dispose();
+    _surnameController.dispose();
+    _healthCardController.dispose();
     _epiController.dispose();
     _causasController.dispose();
     _tratamientoController.dispose();
-    _inmunosupresionController.dispose();
     _comorbilidadesController.dispose();
     super.dispose();
   }
@@ -55,11 +60,14 @@ class _ConfigPageState extends State<ConfigPage> {
             .insert({
               'qr_uuid': _qrUuid, // Ahora es la clave primaria
               'user_id': userId,
+              'name': _nameController.text,
+              'surname': _surnameController.text,
+              'health_card_number': _healthCardController.text,
               'access_code': _accessCode,
               'epi_type': _epiController.text,
               'causes': _causasController.text,
               'treatment': _tratamientoController.text,
-              'immunosuppression': _inmunosupresionController.text,
+              'immunosuppression': _inmunosupresion,
               'comorbidities': _comorbilidadesController.text,
             })
             .select()
@@ -150,6 +158,33 @@ class _ConfigPageState extends State<ConfigPage> {
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
+                      controller: _nameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Nombre',
+                      ),
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Campo requerido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _surnameController,
+                      decoration: const InputDecoration(
+                        labelText: 'Apellidos',
+                      ),
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Campo requerido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _healthCardController,
+                      decoration: const InputDecoration(
+                        labelText: 'Número de Tarjeta Sanitaria',
+                      ),
+                      validator: (value) =>
+                          value?.isEmpty ?? true ? 'Campo requerido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
                       controller: _epiController,
                       decoration: const InputDecoration(
                         labelText: 'Tipo de Enfermedad Pulmonar Intersticial',
@@ -176,13 +211,14 @@ class _ConfigPageState extends State<ConfigPage> {
                           value?.isEmpty ?? true ? 'Campo requerido' : null,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _inmunosupresionController,
-                      decoration: const InputDecoration(
-                        labelText: 'Estado de inmunosupresión',
-                      ),
-                      validator: (value) =>
-                          value?.isEmpty ?? true ? 'Campo requerido' : null,
+                    SwitchListTile(
+                      title: const Text('Estado de inmunosupresión'),
+                      value: _inmunosupresion,
+                      onChanged: (bool value) {
+                        setState(() {
+                          _inmunosupresion = value;
+                        });
+                      },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
