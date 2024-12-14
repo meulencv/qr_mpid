@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:ui'; // Añadir esta importación para ImageFilter
 import 'package:supabase_flutter/supabase_flutter.dart'; // Añade esta importación
 
 class MedicalGuidePage extends StatelessWidget {
@@ -32,7 +33,7 @@ class ChatMessages extends StatefulWidget {
 class _ChatMessagesState extends State<ChatMessages> {
   // Añadir controller para el chat
   final TextEditingController _chatController = TextEditingController();
-  
+
   final Map<String, String> medicalData = {};
   final Map<String, bool> expandedItems = {};
   final List<String> chatMessages = []; // Añadimos lista de mensajes
@@ -52,17 +53,17 @@ class _ChatMessagesState extends State<ChatMessages> {
   bool treatmentShown = false; // Añade esta variable de estado
 
   final String apiKey =
-      'gh-httRWDnWZ0EcXG6mKwQ4j9cq27fJGWu6OEglX6VrBrRmOArf'; // Reemplaza con tu API key de Straico
+      'Br-FN7RQSitgDy47RrOCYujSvo5mtlBgtsJEg1CiDZnOun1hFWa'; // Reemplaza con tu API key de Straico
 
   final List<String> symptomsList = [
-    'Tos persistente (seca)',
-    'Dolor torácico',
-    'Congestión nasal',
-    'Incremento de la mucosidad',
-    'Pitidos',
-    'Dificultad respiratoria',
-    'Cianosis',
-    'Otros',
+    'Tos persistent (seca)',
+    'Dolor toràcic',
+    'Congestió nasal',
+    'Increment de la mucositat',
+    'Xiulets',
+    'Dificultat respiratòria',
+    'Cianosi',
+    'Altres',
   ];
 
   final List<MedicalCheckItem> checkItems = [
@@ -239,8 +240,8 @@ class _ChatMessagesState extends State<ChatMessages> {
       }
     });
 
-    if (symptoms['Otros'] == true && otherSymptoms.isNotEmpty) {
-      symptomsData += '- Otros: $otherSymptoms\n';
+    if (symptoms['Altres'] == true && otherSymptoms.isNotEmpty) {
+      symptomsData += '- Altres: $otherSymptoms\n';
       hasSymptoms = true;
     }
 
@@ -493,16 +494,14 @@ Resposta en català, format estructurat.
 
     // Obtener los tratamientos de Supabase (que ya contienen el árbol de decisiones)
     final treatments = await _getTreatments();
-    
+
     // Formatear los tratamientos y su árbol de decisiones
-    String treatmentsData = treatments
-        .map((t) => '''
+    String treatmentsData = treatments.map((t) => '''
 Diagnòstic: ${t['diagnostic']}
 Tractament: ${t['tractament']}
 Recomanacions: ${t['recomendaciones'] ?? 'No especificades'}
 Gravetat: ${t['gravedad'] ?? 'No especificada'}
-''')
-        .join('\n---\n');
+''').join('\n---\n');
 
     // Crear el prompt para la IA incluyendo todo el contexto
     String prompt = '''
@@ -544,8 +543,9 @@ Resposta màxima 3-4 línies.
 
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
-        final aiResponse = data['data']['completion']['choices'][0]['message']['content'];
-        
+        final aiResponse =
+            data['data']['completion']['choices'][0]['message']['content'];
+
         setState(() {
           chatMessages.add('ASSISTENT:\n\n${aiResponse.trim()}');
         });
@@ -610,6 +610,7 @@ Resposta màxima 3-4 línies.
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF007AFF),
                           minimumSize: const Size(double.infinity, 45),
+                          foregroundColor: Colors.white, // Añadir esto
                         ),
                         child: const Text('Enviar dades'),
                       ),
@@ -637,7 +638,7 @@ Resposta màxima 3-4 línies.
                             },
                             activeColor: const Color(0xFF007AFF),
                           )),
-                      if (symptoms['Otros'] ?? false)
+                      if (symptoms['Altres'] ?? false)
                         Padding(
                           padding: const EdgeInsets.all(16),
                           child: TextField(
@@ -648,14 +649,21 @@ Resposta màxima 3-4 línies.
                                 borderSide: BorderSide.none,
                               ),
                               filled: true,
-                              fillColor: const Color(0xFFF7F7F8),
+                              fillColor: const Color(
+                                  0xFFE8E8E8), // Cambiado a un gris más oscuro
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                                 vertical: 8,
                               ),
+                              hintStyle: TextStyle(
+                                  color: Colors.grey
+                                      .shade600), // Añadido estilo para el hint
                             ),
                             onChanged: (value) => otherSymptoms = value,
                             maxLines: null,
+                            style: TextStyle(
+                                color: Colors.grey
+                                    .shade800), // Añadido estilo para el texto
                           ),
                         ),
                       const SizedBox(height: 16),
@@ -664,6 +672,7 @@ Resposta màxima 3-4 línies.
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF007AFF),
                           minimumSize: const Size(double.infinity, 45),
+                          foregroundColor: Colors.white, // Añadir esto
                         ),
                         child: const Text('Enviar símptomes'),
                       ),
@@ -697,6 +706,7 @@ Resposta màxima 3-4 línies.
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF007AFF),
                             minimumSize: const Size(double.infinity, 45),
+                            foregroundColor: Colors.white, // Añadir esto
                           ),
                           child: const Text('Introduir diagnòstic'),
                         ),
@@ -717,8 +727,16 @@ Resposta màxima 3-4 línies.
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
+                          filled: true, // Añadido
+                          fillColor: const Color(0xFFE8E8E8), // Añadido
+                          hintStyle: TextStyle(
+                              color: Colors.grey
+                                  .shade600), // Añadido estilo para el hint
                         ),
                         maxLines: null,
+                        style: TextStyle(
+                            color: Colors
+                                .grey.shade800), // Añadido estilo para el texto
                       ),
                       const SizedBox(height: 16),
                       Row(
@@ -729,6 +747,7 @@ Resposta màxima 3-4 línies.
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF007AFF),
                                 minimumSize: const Size(double.infinity, 45),
+                                foregroundColor: Colors.white, // Añadir esto
                               ),
                               child: const Text('Enviar diagnòstic'),
                             ),
@@ -751,7 +770,8 @@ Resposta màxima 3-4 línies.
             ],
           ),
         ),
-        if (treatmentShown) const ChatInput(), // Mostrar ChatInput si treatmentShown es verdadero
+        if (treatmentShown)
+          const ChatInput(), // Mostrar ChatInput si treatmentShown es verdadero
       ],
     );
   }
@@ -881,10 +901,14 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
               padding: const EdgeInsets.only(top: 8),
               child: TextField(
                 controller: _resultController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Resultats de la prova',
                   border: OutlineInputBorder(),
+                  filled: true, // Añadido
+                  fillColor: const Color(0xFFE8E8E8), // Añadido
+                  labelStyle: TextStyle(color: Colors.grey.shade700), // Añadido
                 ),
+                style: TextStyle(color: Colors.grey.shade800), // Añadido
                 maxLines: null,
               ),
             ),
@@ -896,6 +920,10 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
                   widget.onResultSubmit(
                       widget.test['nom_prova'], _resultController.text);
                 },
+                style: ElevatedButton.styleFrom( // Añadir esto
+                  backgroundColor: const Color(0xFF007AFF),
+                  foregroundColor: Colors.white,
+                ), // Añadir esto
                 child: const Text('Enviar resultats'),
               ),
             ),
@@ -975,17 +1003,22 @@ class _MedicalChecklistItemState extends State<MedicalChecklistItem> {
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
-                fillColor: const Color(0xFFF7F7F8),
+                fillColor:
+                    const Color(0xFFE8E8E8), // Cambiado a un gris más oscuro
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 8,
                 ),
                 suffixText: widget.item.unit,
+                hintStyle: TextStyle(
+                    color: Colors.grey.shade600), // Añadido estilo para el hint
               ),
               onChanged: widget.onValueChanged,
               controller: _controller,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(
+                  color: Colors.grey.shade800), // Añadido estilo para el texto
             ),
           ),
       ],
@@ -1006,36 +1039,68 @@ class SystemMessage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade100,
-            offset: const Offset(0, 2),
-            blurRadius: 4,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (title != null) ...[
-            Text(
-              title!,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF2D2D2D),
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: Material(
+        elevation: 2,
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(15),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.9),
+                border: Border.all(
+                  color: Colors.grey.withOpacity(0.2),
+                ),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (title != null) ...[
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF007AFF).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.medical_services_outlined,
+                            color: Color(0xFF007AFF),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            title!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2D2D2D),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Container(
+                      height: 1,
+                      color: Colors.grey.withOpacity(0.2),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  child,
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-          ],
-          child,
-        ],
+          ),
+        ),
       ),
     );
   }
@@ -1048,19 +1113,81 @@ class UserMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF007AFF),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          color: Colors.white,
-          height: 1.5,
+    bool isUserMessage = text.startsWith('USUARI:');
+    bool isAssistantMessage = text.startsWith('ASSISTENT:');
+    bool isSystemMessage = !isUserMessage && !isAssistantMessage;
+
+    if (isSystemMessage) {
+      return SystemMessage(
+        child: Text(
+          text,
+          style: const TextStyle(fontSize: 14, height: 1.5),
+        ),
+      );
+    }
+
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: isUserMessage ? const Offset(1, 0) : const Offset(-1, 0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(
+        parent: ModalRoute.of(context)!.animation!,
+        curve: Curves.easeOutQuart,
+      )),
+      child: Align(
+        alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.8,
+          ),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isUserMessage
+                  ? const Color(0xFF007AFF)
+                  : const Color(0xFF34B7F1),
+              borderRadius: BorderRadius.only(
+                topLeft: const Radius.circular(20),
+                topRight: const Radius.circular(20),
+                bottomLeft: Radius.circular(isUserMessage ? 20 : 5),
+                bottomRight: Radius.circular(isUserMessage ? 5 : 20),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 5,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (isUserMessage || isAssistantMessage)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      isUserMessage ? 'Tu' : 'Assistent',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                Text(
+                  text.replaceFirst(
+                      isUserMessage ? 'USUARI:\n\n' : 'ASSISTENT:\n\n', ''),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -1072,51 +1199,77 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final chatMessagesState = context.findAncestorStateOfType<_ChatMessagesState>();
+    final chatMessagesState =
+        context.findAncestorStateOfType<_ChatMessagesState>();
     if (!chatMessagesState!.treatmentShown) {
       return const SizedBox.shrink();
     }
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(
-            color: Colors.grey.shade200,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            spreadRadius: 1,
+            blurRadius: 5,
+            offset: const Offset(0, -1),
           ),
-        ),
+        ],
       ),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
-              controller: chatMessagesState._chatController,
-              decoration: InputDecoration(
-                hintText: 'Escriu un missatge...',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: const Color(0xFFF7F7F8),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8E8E8), // Cambiado a un gris más oscuro
+                borderRadius: BorderRadius.circular(25),
+                border: Border.all(
+                  color: Colors.grey.shade400, // Borde un poco más oscuro
                 ),
               ),
-              maxLines: null,
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: TextField(
+                      controller: chatMessagesState._chatController,
+                      decoration: InputDecoration(
+                        hintText: 'Escriu un missatge...',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(
+                            color:
+                                Colors.grey.shade600), // Hint text más oscuro
+                      ),
+                      style: TextStyle(
+                          color: Colors.grey.shade800), // Texto más oscuro
+                      maxLines: null,
+                    ),
+                  ),
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(25),
+                      onTap: () {
+                        final message = chatMessagesState._chatController.text;
+                        if (message.isNotEmpty) {
+                          chatMessagesState._handleChatMessage(message);
+                          chatMessagesState._chatController.clear();
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(
+                          Icons.send_rounded,
+                          color: Color(0xFF007AFF),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: () {
-              final message = chatMessagesState._chatController.text;
-              chatMessagesState._handleChatMessage(message);
-              chatMessagesState._chatController.clear();
-            },
-            color: const Color(0xFF007AFF),
           ),
         ],
       ),
