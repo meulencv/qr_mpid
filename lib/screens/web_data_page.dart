@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_mpid/screens/autodiag.dart'; // Importar la página de autodiagnóstico
+import 'package:qr_mpid/screens/medical_guide_page.dart'; // Importar la página de guía médica
 
 class WebDataPage extends StatefulWidget {
   const WebDataPage({Key? key}) : super(key: key);
@@ -178,7 +179,10 @@ class _WebDataPageState extends State<WebDataPage> {
   }
 
   void _onGuiaMedicaPressed() {
-    // TODO: Implementar la navegación a la guía médica
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const MedicalGuidePage()),
+    );
   }
 
   Widget _buildInfoRow(String label, String value) {

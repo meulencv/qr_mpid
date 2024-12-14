@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Custom color scheme
 final customColors = {
-  'primary': Color(0xFF2C3E50),
-  'secondary': Color(0xFF3498DB),
+  'primary': Color(0xFF003366), // Dark blue
+  'secondary': Color(0xFF0099CC), // Light blue
   'background': Color(0xFFF5F6FA),
   'success': Color(0xFF2ECC71),
   'warning': Color(0xFFF1C40F),
@@ -25,6 +27,12 @@ class RespiratoryTestApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: customColors['primary'],
           elevation: 0,
+          titleTextStyle: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -33,6 +41,29 @@ class RespiratoryTestApp extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
             ),
+            textStyle: TextStyle(
+              fontFamily: 'Montserrat',
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        textTheme: TextTheme(
+          bodyLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 16,
+            color: customColors['primary'],
+          ),
+          bodyMedium: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 14,
+            color: customColors['primary'],
+          ),
+          titleLarge: TextStyle(
+            fontFamily: 'Montserrat',
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: customColors['primary'],
           ),
         ),
       ),
@@ -101,6 +132,7 @@ class BaseQuestionScreen extends StatelessWidget {
                               Text(
                                 question,
                                 style: TextStyle(
+                                  fontFamily: 'Montserrat',
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: customColors['primary'],
@@ -150,13 +182,7 @@ class FeverQuestionScreen extends StatefulWidget {
 }
 
 class _FeverQuestionScreenState extends State<FeverQuestionScreen> {
-  final _feverController = TextEditingController();
-
-  @override
-  void dispose() {
-    _feverController.dispose();
-    super.dispose();
-  }
+  double _fever = 37.0;
 
   @override
   Widget build(BuildContext context) {
@@ -164,41 +190,39 @@ class _FeverQuestionScreenState extends State<FeverQuestionScreen> {
       title: 'Temperatura',
       question: 'Tens febre? Introdueix la temperatura (°C):',
       progress: 0.2,
-      content: TextField(
-        controller: _feverController,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          hintText: 'Exemple: 38.5',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+      content: Column(
+        children: [
+          SizedBox(
+            height: 200,
+            child: CupertinoPicker(
+              itemExtent: 32.0,
+              onSelectedItemChanged: (index) {
+                setState(() {
+                  _fever = 35.0 + index * 0.1;
+                });
+              },
+              children: List<Widget>.generate(71, (index) {
+                return Center(
+                  child: Text(
+                    (35.0 + index * 0.1).toStringAsFixed(1),
+                    style: TextStyle(fontSize: 24),
+                  ),
+                );
+              }),
+            ),
           ),
-          filled: true,
-          fillColor: Colors.white,
-        ),
+          Text(
+            '${_fever.toStringAsFixed(1)}°C',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ],
       ),
       button: ElevatedButton.icon(
         onPressed: () {
-          final fever = double.tryParse(_feverController.text);
-          if (fever == null) {
-            showDialog(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('Error'),
-                content: Text('Si us plau, introdueix un número vàlid.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('OK'),
-                  ),
-                ],
-              ),
-            );
-            return;
-          }
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CoughQuestionScreen(fever: fever),
+              builder: (context) => CoughQuestionScreen(fever: _fever),
             ),
           );
         },
@@ -230,52 +254,16 @@ class _CoughQuestionScreenState extends State<CoughQuestionScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text(
-              'Sí',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: true,
-              groupValue: hasCough,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasCough = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasCough == true,
-          ),
-          ListTile(
-            title: Text(
-              'No',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: false,
-              groupValue: hasCough,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasCough = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasCough == false,
-          ),
+          _buildRadioTile('Sí', true, hasCough, (value) {
+            setState(() {
+              hasCough = value;
+            });
+          }),
+          _buildRadioTile('No', false, hasCough, (value) {
+            setState(() {
+              hasCough = value;
+            });
+          }),
           if (hasCough == true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -284,54 +272,16 @@ class _CoughQuestionScreenState extends State<CoughQuestionScreen> {
                   'És amb expectoració?',
                   style: TextStyle(fontSize: 18),
                 ),
-                ListTile(
-                  title: Text(
-                    'Sí',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  leading: Radio<bool?>(
-                    value: true,
-                    groupValue: hasExpectoration,
-                    activeColor: customColors['secondary'],
-                    onChanged: (value) {
-                      setState(() {
-                        hasExpectoration = value;
-                      });
-                    },
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  tileColor: Colors.white,
-                  selectedTileColor: customColors['secondary']!.withAlpha(25),
-                  selected: hasExpectoration == true,
-                ),
-                ListTile(
-                  title: Text(
-                    'No',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  leading: Radio<bool?>(
-                    value: false,
-                    groupValue: hasExpectoration,
-                    activeColor: customColors['secondary'],
-                    onChanged: (value) {
-                      setState(() {
-                        hasExpectoration = value;
-                      });
-                    },
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  tileColor: Colors.white,
-                  selectedTileColor: customColors['secondary']!.withAlpha(25),
-                  selected: hasExpectoration == false,
-                ),
+                _buildRadioTile('Sí', true, hasExpectoration, (value) {
+                  setState(() {
+                    hasExpectoration = value;
+                  });
+                }),
+                _buildRadioTile('No', false, hasExpectoration, (value) {
+                  setState(() {
+                    hasExpectoration = value;
+                  });
+                }),
               ],
             ),
         ],
@@ -356,6 +306,29 @@ class _CoughQuestionScreenState extends State<CoughQuestionScreen> {
       ),
     );
   }
+
+  Widget _buildRadioTile(String title, bool value, bool? groupValue,
+      ValueChanged<bool?> onChanged) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+      ),
+      leading: Radio<bool?>(
+        value: value,
+        groupValue: groupValue,
+        activeColor: customColors['secondary'],
+        onChanged: onChanged,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      tileColor: Colors.white,
+      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selected: groupValue == value,
+    );
+  }
 }
 
 class BreathingQuestionScreen extends StatefulWidget {
@@ -376,6 +349,7 @@ class BreathingQuestionScreen extends StatefulWidget {
 class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
   bool? hasBreathingDifficulty;
   bool? hasWheezing;
+  bool? hasMuscleRetraction;
 
   @override
   Widget build(BuildContext context) {
@@ -386,56 +360,22 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text(
-              'Sí',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: true,
-              groupValue: hasBreathingDifficulty,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasBreathingDifficulty = value;
-                  if (value == false) {
-                    hasWheezing = null;
-                  }
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasBreathingDifficulty == true,
-          ),
-          ListTile(
-            title: Text(
-              'No',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: false,
-              groupValue: hasBreathingDifficulty,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasBreathingDifficulty = value;
-                  hasWheezing = null;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasBreathingDifficulty == false,
-          ),
+          _buildRadioTile('Sí', true, hasBreathingDifficulty, (value) {
+            setState(() {
+              hasBreathingDifficulty = value;
+              if (value == false) {
+                hasWheezing = null;
+                hasMuscleRetraction = null;
+              }
+            });
+          }),
+          _buildRadioTile('No', false, hasBreathingDifficulty, (value) {
+            setState(() {
+              hasBreathingDifficulty = value;
+              hasWheezing = null;
+              hasMuscleRetraction = null;
+            });
+          }),
           if (hasBreathingDifficulty == true)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -445,61 +385,39 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
                   'Sents un xiulet al respirar?',
                   style: TextStyle(fontSize: 18),
                 ),
-                ListTile(
-                  title: Text(
-                    'Sí',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  leading: Radio<bool?>(
-                    value: true,
-                    groupValue: hasWheezing,
-                    activeColor: customColors['secondary'],
-                    onChanged: (value) {
-                      setState(() {
-                        hasWheezing = value;
-                      });
-                    },
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  tileColor: Colors.white,
-                  selectedTileColor: customColors['secondary']!.withAlpha(25),
-                  selected: hasWheezing == true,
+                _buildRadioTile('Sí', true, hasWheezing, (value) {
+                  setState(() {
+                    hasWheezing = value;
+                  });
+                }),
+                _buildRadioTile('No', false, hasWheezing, (value) {
+                  setState(() {
+                    hasWheezing = value;
+                  });
+                }),
+                SizedBox(height: 16),
+                Text(
+                  'Sents tiratge muscular al respirar?',
+                  style: TextStyle(fontSize: 18),
                 ),
-                ListTile(
-                  title: Text(
-                    'No',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                  ),
-                  leading: Radio<bool?>(
-                    value: false,
-                    groupValue: hasWheezing,
-                    activeColor: customColors['secondary'],
-                    onChanged: (value) {
-                      setState(() {
-                        hasWheezing = value;
-                      });
-                    },
-                  ),
-                  contentPadding:
-                      EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  tileColor: Colors.white,
-                  selectedTileColor: customColors['secondary']!.withAlpha(25),
-                  selected: hasWheezing == false,
-                ),
+                _buildRadioTile('Sí', true, hasMuscleRetraction, (value) {
+                  setState(() {
+                    hasMuscleRetraction = value;
+                  });
+                }),
+                _buildRadioTile('No', false, hasMuscleRetraction, (value) {
+                  setState(() {
+                    hasMuscleRetraction = value;
+                  });
+                }),
               ],
             ),
         ],
       ),
       button: ElevatedButton.icon(
         onPressed: hasBreathingDifficulty == null ||
-                (hasBreathingDifficulty == true && hasWheezing == null)
+                (hasBreathingDifficulty == true &&
+                    (hasWheezing == null || hasMuscleRetraction == null))
             ? null
             : () {
                 Navigator.push(
@@ -511,6 +429,7 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
                       hasExpectoration: widget.hasExpectoration,
                       hasBreathingDifficulty: hasBreathingDifficulty!,
                       hasWheezing: hasWheezing ?? false,
+                      hasMuscleRetraction: hasMuscleRetraction ?? false,
                     ),
                   ),
                 );
@@ -518,6 +437,29 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
         icon: Icon(Icons.arrow_forward),
         label: Text('Següent'),
       ),
+    );
+  }
+
+  Widget _buildRadioTile(String title, bool value, bool? groupValue,
+      ValueChanged<bool?> onChanged) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+      ),
+      leading: Radio<bool?>(
+        value: value,
+        groupValue: groupValue,
+        activeColor: customColors['secondary'],
+        onChanged: onChanged,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      tileColor: Colors.white,
+      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selected: groupValue == value,
     );
   }
 }
@@ -528,6 +470,7 @@ class ChestPainQuestionScreen extends StatefulWidget {
   final bool hasExpectoration;
   final bool hasBreathingDifficulty;
   final bool hasWheezing;
+  final bool hasMuscleRetraction;
 
   ChestPainQuestionScreen({
     required this.fever,
@@ -535,6 +478,7 @@ class ChestPainQuestionScreen extends StatefulWidget {
     required this.hasExpectoration,
     required this.hasBreathingDifficulty,
     required this.hasWheezing,
+    required this.hasMuscleRetraction,
   });
 
   @override
@@ -554,52 +498,16 @@ class _ChestPainQuestionScreenState extends State<ChestPainQuestionScreen> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text(
-              'Sí',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: true,
-              groupValue: hasChestPain,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasChestPain = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasChestPain == true,
-          ),
-          ListTile(
-            title: Text(
-              'No',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: false,
-              groupValue: hasChestPain,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasChestPain = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasChestPain == false,
-          ),
+          _buildRadioTile('Sí', true, hasChestPain, (value) {
+            setState(() {
+              hasChestPain = value;
+            });
+          }),
+          _buildRadioTile('No', false, hasChestPain, (value) {
+            setState(() {
+              hasChestPain = value;
+            });
+          }),
         ],
       ),
       button: ElevatedButton.icon(
@@ -615,6 +523,7 @@ class _ChestPainQuestionScreenState extends State<ChestPainQuestionScreen> {
                       hasExpectoration: widget.hasExpectoration,
                       hasBreathingDifficulty: widget.hasBreathingDifficulty,
                       hasWheezing: widget.hasWheezing,
+                      hasMuscleRetraction: widget.hasMuscleRetraction,
                       hasChestPain: hasChestPain!,
                     ),
                   ),
@@ -625,6 +534,29 @@ class _ChestPainQuestionScreenState extends State<ChestPainQuestionScreen> {
       ),
     );
   }
+
+  Widget _buildRadioTile(String title, bool value, bool? groupValue,
+      ValueChanged<bool?> onChanged) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+      ),
+      leading: Radio<bool?>(
+        value: value,
+        groupValue: groupValue,
+        activeColor: customColors['secondary'],
+        onChanged: onChanged,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      tileColor: Colors.white,
+      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selected: groupValue == value,
+    );
+  }
 }
 
 class DisorientationQuestionScreen extends StatefulWidget {
@@ -633,6 +565,7 @@ class DisorientationQuestionScreen extends StatefulWidget {
   final bool hasExpectoration;
   final bool hasBreathingDifficulty;
   final bool hasWheezing;
+  final bool hasMuscleRetraction;
   final bool hasChestPain;
 
   DisorientationQuestionScreen({
@@ -641,6 +574,7 @@ class DisorientationQuestionScreen extends StatefulWidget {
     required this.hasExpectoration,
     required this.hasBreathingDifficulty,
     required this.hasWheezing,
+    required this.hasMuscleRetraction,
     required this.hasChestPain,
   });
 
@@ -662,52 +596,16 @@ class _DisorientationQuestionScreenState
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            title: Text(
-              'Sí',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: true,
-              groupValue: hasDisorientation,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasDisorientation = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasDisorientation == true,
-          ),
-          ListTile(
-            title: Text(
-              'No',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            leading: Radio<bool?>(
-              value: false,
-              groupValue: hasDisorientation,
-              activeColor: customColors['secondary'],
-              onChanged: (value) {
-                setState(() {
-                  hasDisorientation = value;
-                });
-              },
-            ),
-            contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            tileColor: Colors.white,
-            selectedTileColor: customColors['secondary']!.withAlpha(25),
-            selected: hasDisorientation == false,
-          ),
+          _buildRadioTile('Sí', true, hasDisorientation, (value) {
+            setState(() {
+              hasDisorientation = value;
+            });
+          }),
+          _buildRadioTile('No', false, hasDisorientation, (value) {
+            setState(() {
+              hasDisorientation = value;
+            });
+          }),
         ],
       ),
       button: ElevatedButton.icon(
@@ -723,6 +621,7 @@ class _DisorientationQuestionScreenState
                       hasExpectoration: widget.hasExpectoration,
                       hasBreathingDifficulty: widget.hasBreathingDifficulty,
                       hasWheezing: widget.hasWheezing,
+                      hasMuscleRetraction: widget.hasMuscleRetraction,
                       hasChestPain: widget.hasChestPain,
                       hasDisorientation: hasDisorientation!,
                     ),
@@ -734,6 +633,29 @@ class _DisorientationQuestionScreenState
       ),
     );
   }
+
+  Widget _buildRadioTile(String title, bool value, bool? groupValue,
+      ValueChanged<bool?> onChanged) {
+    return ListTile(
+      title: Text(
+        title,
+        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+      ),
+      leading: Radio<bool?>(
+        value: value,
+        groupValue: groupValue,
+        activeColor: customColors['secondary'],
+        onChanged: onChanged,
+      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      tileColor: Colors.white,
+      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selected: groupValue == value,
+    );
+  }
 }
 
 class ResultScreen extends StatelessWidget {
@@ -742,6 +664,7 @@ class ResultScreen extends StatelessWidget {
   final bool hasExpectoration;
   final bool hasBreathingDifficulty;
   final bool hasWheezing;
+  final bool hasMuscleRetraction;
   final bool hasChestPain;
   final bool hasDisorientation;
 
@@ -751,11 +674,14 @@ class ResultScreen extends StatelessWidget {
     required this.hasExpectoration,
     required this.hasBreathingDifficulty,
     required this.hasWheezing,
+    required this.hasMuscleRetraction,
     required this.hasChestPain,
     required this.hasDisorientation,
   });
 
-  Widget _buildResultCard(String title, String content, Color color) {
+  Widget _buildResultCard(
+      String title, String content, Color color, IconData icon,
+      {Widget? extraButton}) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
@@ -770,19 +696,31 @@ class ResultScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+            Row(
+              children: [
+                Icon(icon, color: color, size: 30),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 16),
             Text(
               content,
               style: TextStyle(fontSize: 16),
             ),
+            if (extraButton != null) ...[
+              SizedBox(height: 16),
+              extraButton,
+            ],
           ],
         ),
       ),
@@ -819,6 +757,9 @@ class ResultScreen extends StatelessWidget {
             if (hasBreathingDifficulty)
               _buildSummaryItem(
                   'Xiulet al respirar:', hasWheezing ? 'Sí' : 'No'),
+            if (hasBreathingDifficulty)
+              _buildSummaryItem(
+                  'Tiratge muscular:', hasMuscleRetraction ? 'Sí' : 'No'),
             _buildSummaryItem('Dolor al pit:', hasChestPain ? 'Sí' : 'No'),
             _buildSummaryItem(
                 'Desorientació:', hasDisorientation ? 'Sí' : 'No'),
@@ -863,41 +804,34 @@ class ResultScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String result;
+    String actions;
+    Color resultColor;
+    IconData resultIcon;
 
     if (fever >= 39 ||
         hasDisorientation ||
         hasChestPain && hasBreathingDifficulty ||
-        (hasBreathingDifficulty && hasWheezing)) {
-      // Added wheezing condition
-      result = 'Símptomes Greus\n\n'
-          'Febre alta 39°C\n'
-          'Dificultat respiratòria significativa\n'
-          'Dolor toràcic intens\n'
-          'Desorientació\n'
-          'Xiulet al respirar\n\n'
-          'Accions:\n'
-          '- EMERGÈNCIA MÈDICA\n'
+        (hasBreathingDifficulty && (hasWheezing || hasMuscleRetraction))) {
+      result = 'Símptomes Greus';
+      actions = '- EMERGÈNCIA MÈDICA\n'
           '- Trucar ambulància\n'
           '- Anar a urgències';
+      resultColor = customColors['danger']!;
+      resultIcon = Icons.error;
     } else if (fever >= 38.5 && hasCough && hasExpectoration && hasChestPain) {
-      result = 'Símptomes Moderats\n\n'
-          'Febre 38.5°C\n'
-          'Tos amb expectoració\n'
-          'Dificultat respiratòria al parlar\n'
-          'Dolor toràcic\n\n'
-          'Accions:\n'
-          '- Contactar metge mateix dia\n'
+      result = 'Símptomes Moderats';
+      actions = '- Contactar metge mateix dia\n'
           '- Possible consulta presencial\n'
           '- Proves diagnòstiques bàsiques';
+      resultColor = customColors['warning']!;
+      resultIcon = Icons.warning;
     } else {
-      result = 'Símptomes Lleus\n\n'
-          'Temperatura 38.5°C\n'
-          'Tos sense expectoració\n'
-          'Dificultat respiratòria ocasional\n\n'
-          'Accions:\n'
-          '- Repòs\n'
+      result = 'Símptomes Lleus';
+      actions = '- Repòs\n'
           '- Hidratació\n'
           '- Consultar al seu metge en 24-48 hores';
+      resultColor = customColors['success']!;
+      resultIcon = Icons.check_circle;
     }
 
     return Scaffold(
@@ -914,11 +848,32 @@ class ResultScreen extends StatelessWidget {
             _buildResultCard(
               'Diagnòstic',
               result,
-              hasDisorientation
-                  ? customColors['danger']!
-                  : hasChestPain
-                      ? customColors['warning']!
-                      : customColors['success']!,
+              resultColor,
+              resultIcon,
+              extraButton: result == 'Símptomes Greus'
+                  ? ElevatedButton.icon(
+                      onPressed: () async {
+                        const url = 'tel:112';
+                        if (await canLaunch(url)) {
+                          await launch(url);
+                        } else {
+                          throw 'Could not launch $url';
+                        }
+                      },
+                      icon: Icon(Icons.phone),
+                      label: Text('Trucar a urgències (112)'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: customColors['danger'],
+                      ),
+                    )
+                  : null,
+            ),
+            SizedBox(height: 24),
+            _buildResultCard(
+              'Accions',
+              actions,
+              customColors['primary']!,
+              Icons.info,
             ),
             SizedBox(height: 24),
             ElevatedButton.icon(
