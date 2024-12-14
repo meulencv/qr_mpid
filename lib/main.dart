@@ -1,15 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:qr_mpid/home_page.dart';
-import 'package:qr_mpid/verification_page.dart';
-import 'package:qr_mpid/web_data_page.dart';  // Añadir esta importación
+import 'package:qr_mpid/screens/home_page.dart';
+import 'package:qr_mpid/screens/verification_page.dart';
+import 'package:qr_mpid/screens/web_data_page.dart';  // Añadir esta importación
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'menu_page.dart';
+import 'screens/menu_page.dart';
 import 'my_widget.dart';
-import 'config_page.dart';
-import 'login_page.dart';
-import 'signup_page.dart';
+import 'screens/config_page.dart';
+import 'screens/login_page.dart';
+import 'screens/signup_page.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
