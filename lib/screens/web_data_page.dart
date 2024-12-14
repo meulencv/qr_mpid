@@ -58,7 +58,7 @@ class _WebDataPageState extends State<WebDataPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dades del Pacient'),
-        backgroundColor: Color(0xFF4b66a6),
+        backgroundColor: Color(0xFF304982),
         foregroundColor: Colors.white,
       ),
       body: _loading
@@ -108,7 +108,7 @@ class _WebDataPageState extends State<WebDataPage> {
           style: GoogleFonts.roboto(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF4b66a6),
+            color: Color(0xFF304982),
           ),
         ),
         Text(
@@ -129,7 +129,10 @@ class _WebDataPageState extends State<WebDataPage> {
       children: [
         Text(
           'Informació Personal',
-          style: GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.bold),
+          style: GoogleFonts.roboto(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF304982)),
         ),
         const SizedBox(height: 10),
         _buildInfoRow('Nom', _patientData!['name']),
@@ -226,7 +229,7 @@ class _WebDataPageState extends State<WebDataPage> {
               '$label:',
               style: GoogleFonts.roboto(
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: Color(0xFF304982),
               ),
             ),
           ),

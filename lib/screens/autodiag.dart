@@ -6,7 +6,6 @@ import 'package:qr_mpid/screens/web_data_page.dart'; // Import WebDataPage
 // Custom color scheme
 final customColors = {
   'primary': Color(0xFF4b66a6), // Dark blue
-  'secondary': Color(0xFF0099CC), // Light blue
   'background': Color(0xFFF5F6FA),
   'success': Color(0xFF2ECC71),
   'warning': Color(0xFFF1C40F),
@@ -37,7 +36,7 @@ class RespiratoryTestApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: customColors['secondary'],
+            backgroundColor: customColors['primary'],
             padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(30),
@@ -103,8 +102,7 @@ class BaseQuestionScreen extends StatelessWidget {
           LinearProgressIndicator(
             value: progress,
             backgroundColor: Colors.grey[200],
-            valueColor:
-                AlwaysStoppedAnimation<Color>(customColors['secondary']!),
+            valueColor: AlwaysStoppedAnimation<Color>(customColors['primary']!),
           ),
           Expanded(
             child: Center(
@@ -129,7 +127,7 @@ class BaseQuestionScreen extends StatelessWidget {
                               Icon(
                                 Icons.help_outline_rounded,
                                 size: 48,
-                                color: customColors['secondary'],
+                                color: customColors['primary'],
                               ),
                               SizedBox(height: 16),
                               Text(
@@ -181,8 +179,14 @@ class BaseQuestionScreen extends StatelessWidget {
                             Navigator.pop(context);
                           }
                         },
-                        icon: Icon(Icons.arrow_back),
-                        label: Text('Volver'),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                        ),
+                        label: Text(
+                          'Tornar',
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ],
                   ),
@@ -246,8 +250,14 @@ class _FeverQuestionScreenState extends State<FeverQuestionScreen> {
             ),
           );
         },
-        icon: Icon(Icons.arrow_forward),
-        label: Text('Següent'),
+        icon: Icon(
+          Icons.arrow_forward,
+          color: Colors.white,
+        ),
+        label: Text(
+          'Següent',
+          style: TextStyle(color: Colors.white),
+        ),
       ),
       isFirstQuestion: true,
     );
@@ -338,7 +348,7 @@ class _CoughQuestionScreenState extends State<CoughQuestionScreen> {
       leading: Radio<bool?>(
         value: value,
         groupValue: groupValue,
-        activeColor: customColors['secondary'],
+        activeColor: customColors['primary'],
         onChanged: onChanged,
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -346,7 +356,7 @@ class _CoughQuestionScreenState extends State<CoughQuestionScreen> {
         borderRadius: BorderRadius.circular(10),
       ),
       tileColor: Colors.white,
-      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selectedTileColor: customColors['primary']!.withAlpha(25),
       selected: groupValue == value,
     );
   }
@@ -471,7 +481,7 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
       leading: Radio<bool?>(
         value: value,
         groupValue: groupValue,
-        activeColor: customColors['secondary'],
+        activeColor: customColors['primary'],
         onChanged: onChanged,
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -479,7 +489,7 @@ class _BreathingQuestionScreenState extends State<BreathingQuestionScreen> {
         borderRadius: BorderRadius.circular(10),
       ),
       tileColor: Colors.white,
-      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selectedTileColor: customColors['primary']!.withAlpha(25),
       selected: groupValue == value,
     );
   }
@@ -566,7 +576,7 @@ class _ChestPainQuestionScreenState extends State<ChestPainQuestionScreen> {
       leading: Radio<bool?>(
         value: value,
         groupValue: groupValue,
-        activeColor: customColors['secondary'],
+        activeColor: customColors['primary'],
         onChanged: onChanged,
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -574,7 +584,7 @@ class _ChestPainQuestionScreenState extends State<ChestPainQuestionScreen> {
         borderRadius: BorderRadius.circular(10),
       ),
       tileColor: Colors.white,
-      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selectedTileColor: customColors['primary']!.withAlpha(25),
       selected: groupValue == value,
     );
   }
@@ -665,7 +675,7 @@ class _DisorientationQuestionScreenState
       leading: Radio<bool?>(
         value: value,
         groupValue: groupValue,
-        activeColor: customColors['secondary'],
+        activeColor: customColors['primary'],
         onChanged: onChanged,
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -673,7 +683,7 @@ class _DisorientationQuestionScreenState
         borderRadius: BorderRadius.circular(10),
       ),
       tileColor: Colors.white,
-      selectedTileColor: customColors['secondary']!.withAlpha(25),
+      selectedTileColor: customColors['primary']!.withAlpha(25),
       selected: groupValue == value,
     );
   }
