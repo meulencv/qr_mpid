@@ -23,7 +23,10 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar Sessió')),
+      appBar: AppBar(
+        title: const Text('Iniciar Sessió'),
+        backgroundColor: const Color(0xFF4b66a6),
+      ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(

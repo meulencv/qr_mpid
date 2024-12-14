@@ -57,7 +57,7 @@ class _WebDataPageState extends State<WebDataPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dades del Pacient'),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Color(0xFF4b66a6),
         foregroundColor: Colors.white,
       ),
       body: _loading
@@ -104,7 +104,7 @@ class _WebDataPageState extends State<WebDataPage> {
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
+            color: Color(0xFF4b66a6),
           ),
         ),
         Text(
@@ -171,7 +171,7 @@ class _WebDataPageState extends State<WebDataPage> {
             ElevatedButton(
               onPressed: _onAutodiagnosticoPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: Color(0xFF4b66a6),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
@@ -181,7 +181,7 @@ class _WebDataPageState extends State<WebDataPage> {
             ElevatedButton(
               onPressed: _onGuiaMedicaPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
+                backgroundColor: Color(0xFF4b66a6),
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),

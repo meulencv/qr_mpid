@@ -9,6 +9,7 @@ class MenuPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('MENÚ'),
+        backgroundColor: const Color(0xFF4b66a6),
         actions: [
           IconButton(
             icon: const Icon(Icons.phone_android),

@@ -24,7 +24,7 @@ class VerificationPage extends StatelessWidget {
                     Icon(
                       Icons.warning_amber_rounded,
                       size: 48,
-                      color: Colors.amber,
+                      color: Color(0xFF4b66a6),
                     ),
                     SizedBox(height: 16),
                     Text(
