@@ -156,7 +156,8 @@ class _HomePageState extends State<HomePage> {
     if (savedQrUuid != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('QR Guardat', style: TextStyle(color: Color(0xFF4b66a6))),
+          title: const Text('QR Guardat',
+              style: TextStyle(color: Color(0xFF4b66a6))),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -207,7 +208,8 @@ class _HomePageState extends State<HomePage> {
             children: [
               Text(
                 'La Meva App',
-                style: GoogleFonts.roboto( // Use Google Fonts
+                style: GoogleFonts.roboto(
+                  // Use Google Fonts
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF4b66a6),

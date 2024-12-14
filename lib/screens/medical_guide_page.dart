@@ -608,7 +608,7 @@ Resposta màxima 3-4 línies.
                       ElevatedButton(
                         onPressed: _sendData,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF007AFF),
+                          backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
                           minimumSize: const Size(double.infinity, 45),
                           foregroundColor: Colors.white, // Añadir esto
                         ),
@@ -636,7 +636,7 @@ Resposta màxima 3-4 línies.
                                 symptoms[symptom] = value ?? false;
                               });
                             },
-                            activeColor: const Color(0xFF007AFF),
+                            activeColor: const Color(0xFF4B66A6), // Color principal actualizado
                           )),
                       if (symptoms['Altres'] ?? false)
                         Padding(
@@ -670,7 +670,7 @@ Resposta màxima 3-4 línies.
                       ElevatedButton(
                         onPressed: _sendSymptoms,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF007AFF),
+                          backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
                           minimumSize: const Size(double.infinity, 45),
                           foregroundColor: Colors.white, // Añadir esto
                         ),
@@ -704,7 +704,7 @@ Resposta màxima 3-4 línies.
                           onPressed: () =>
                               setState(() => showDiagnosisForm = true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF007AFF),
+                            backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
                             minimumSize: const Size(double.infinity, 45),
                             foregroundColor: Colors.white, // Añadir esto
                           ),
@@ -745,7 +745,7 @@ Resposta màxima 3-4 línies.
                             child: ElevatedButton(
                               onPressed: _sendDiagnosis,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF007AFF),
+                                backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
                                 minimumSize: const Size(double.infinity, 45),
                                 foregroundColor: Colors.white, // Añadir esto
                               ),
@@ -921,7 +921,7 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
                       widget.test['nom_prova'], _resultController.text);
                 },
                 style: ElevatedButton.styleFrom( // Añadir esto
-                  backgroundColor: const Color(0xFF007AFF),
+                  backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
                   foregroundColor: Colors.white,
                 ), // Añadir esto
                 child: const Text('Enviar resultats'),
@@ -990,7 +990,7 @@ class _MedicalChecklistItemState extends State<MedicalChecklistItem> {
           title: Text('${widget.item.title} (${widget.item.unit})'),
           value: widget.isExpanded,
           onChanged: (bool? value) => widget.onChanged(value ?? false),
-          activeColor: const Color(0xFF007AFF),
+          activeColor: const Color(0xFF4B66A6), // Color principal actualizado
         ),
         if (widget.isExpanded)
           Padding(
@@ -1066,12 +1066,12 @@ class SystemMessage extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF007AFF).withOpacity(0.1),
+                            color: const Color(0xFF4B66A6).withOpacity(0.1), // Color principal actualizado
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.medical_services_outlined,
-                            color: Color(0xFF007AFF),
+                            color: Color(0xFF4B66A6), // Color principal actualizado
                             size: 20,
                           ),
                         ),
@@ -1145,8 +1145,8 @@ class UserMessage extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isUserMessage
-                  ? const Color(0xFF007AFF)
-                  : const Color(0xFF34B7F1),
+                  ? const Color(0xFF4B66A6) // Color principal actualizado
+                  : const Color(0xFF5B76B6), // Variación más clara del color principal
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -1262,7 +1262,7 @@ class ChatInput extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: const Icon(
                           Icons.send_rounded,
-                          color: Color(0xFF007AFF),
+                          color: Color(0xFF4B66A6), // Color principal actualizado
                         ),
                       ),
                     ),
