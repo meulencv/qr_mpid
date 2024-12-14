@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Añadir si no está ya incluida
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 
 class HomePage extends StatefulWidget {
   // Cambiar a StatefulWidget
@@ -155,7 +156,7 @@ class _HomePageState extends State<HomePage> {
     if (savedQrUuid != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('QR Guardat'),
+          title: const Text('QR Guardat', style: TextStyle(color: Color(0xFF4b66a6))),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -204,11 +205,12 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
+              Text(
                 'La Meva App',
-                style: TextStyle(
+                style: GoogleFonts.roboto( // Use Google Fonts
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF4b66a6),
                 ),
               ),
               const SizedBox(height: 48),

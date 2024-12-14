@@ -5,7 +5,7 @@ import 'package:qr_mpid/screens/web_data_page.dart'; // Import WebDataPage
 
 // Custom color scheme
 final customColors = {
-  'primary': Color(0xFF003366), // Dark blue
+  'primary': Color(0xFF4b66a6), // Dark blue
   'secondary': Color(0xFF0099CC), // Light blue
   'background': Color(0xFFF5F6FA),
   'success': Color(0xFF2ECC71),

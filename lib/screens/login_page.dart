@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,7 +25,8 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Iniciar Sessió'),
+        title: const Text('Iniciar Sessió',
+            style: TextStyle(fontFamily: 'Roboto')),
         backgroundColor: const Color(0xFF4b66a6),
       ),
       body: _loading
@@ -38,19 +40,25 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _emailController,
                     decoration:
                         const InputDecoration(labelText: 'Correu electrònic'),
+                    style: GoogleFonts.roboto(),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
                     decoration: const InputDecoration(labelText: 'Contrasenya'),
                     obscureText: true,
+                    style: GoogleFonts.roboto(),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _handleLogin,
-                      child: const Text('Iniciar Sessió'),
+                      child: const Text('Iniciar Sessió',
+                          style: TextStyle(fontFamily: 'Roboto')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4b66a6),
+                      ),
                     ),
                   ),
                 ],
@@ -90,8 +98,8 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Error d\'inici de sessió: $e'), // Mejorado el mensaje de error
+            content: Text('Error d\'inici de sessió: $e',
+                style: GoogleFonts.roboto()), // Mejorado el mensaje de error
             backgroundColor: Colors.red,
           ),
         );

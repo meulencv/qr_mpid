@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SignupPage extends StatefulWidget {
@@ -33,17 +34,19 @@ class _SignupPageState extends State<SignupPage> {
                   controller: _emailController,
                   decoration:
                       const InputDecoration(label: Text('Correu electrònic')),
+                  style: GoogleFonts.roboto(),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   obscureText: true,
                   controller: _passwordController,
                   decoration: const InputDecoration(label: Text('Contrasenya')),
+                  style: GoogleFonts.roboto(),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _handleSignup,
-                  child: const Text('Crear Compte'),
+                  child: const Text('Crear Compte', style: TextStyle(fontFamily: 'Roboto')),
                 ),
               ],
             ),
@@ -71,7 +74,7 @@ class _SignupPageState extends State<SignupPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('El registre ha fallat: $e'),
+              content: Text('El registre ha fallat: $e', style: GoogleFonts.roboto()),
               backgroundColor: Colors.red),
         );
       }

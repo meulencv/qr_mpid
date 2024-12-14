@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import '../my_widget.dart';
 
 class MenuPage extends StatelessWidget {
@@ -8,7 +9,7 @@ class MenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MENÚ'),
+        title: const Text('MENÚ', style: TextStyle(fontFamily: 'Roboto')),
         backgroundColor: const Color(0xFF4b66a6),
         actions: [
           IconButton(
@@ -23,8 +24,8 @@ class MenuPage extends StatelessWidget {
           ),
         ],
       ),
-      body: const Center(
-        child: Text('MENÚ'),
+      body: Center(
+        child: Text('MENÚ', style: GoogleFonts.roboto()),
       ),
     );
   }

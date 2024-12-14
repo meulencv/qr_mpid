@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:qr_mpid/screens/autodiag.dart'; // Importar la página de autodiagnóstico
 import 'package:qr_mpid/screens/medical_guide_page.dart'; // Importar la página de guía médica
@@ -64,10 +65,13 @@ class _WebDataPageState extends State<WebDataPage> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(
-                  child:
-                      Text(_error!, style: const TextStyle(color: Colors.red)))
+                  child: Text(_error!,
+                      style: const TextStyle(
+                          color: Colors.red, fontFamily: 'Roboto')))
               : _patientData == null
-                  ? const Center(child: Text('No s\'han trobat dades'))
+                  ? const Center(
+                      child: Text('No s\'han trobat dades',
+                          style: TextStyle(fontFamily: 'Roboto')))
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Center(
@@ -99,9 +103,9 @@ class _WebDataPageState extends State<WebDataPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'HISTÒRIA CLÍNICA',
-          style: TextStyle(
+          style: GoogleFonts.roboto(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Color(0xFF4b66a6),
@@ -109,7 +113,7 @@ class _WebDataPageState extends State<WebDataPage> {
         ),
         Text(
           'Data de registre: ${DateTime.parse(_patientData!['created_at']).toLocal().toString().split('.')[0]}',
-          style: const TextStyle(color: Colors.grey),
+          style: GoogleFonts.roboto(color: Colors.grey),
         ),
       ],
     );
@@ -123,9 +127,9 @@ class _WebDataPageState extends State<WebDataPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Informació Personal',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         _buildInfoRow('Nom', _patientData!['name']),
@@ -142,9 +146,9 @@ class _WebDataPageState extends State<WebDataPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Informació Mèdica',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: GoogleFonts.roboto(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         _buildInfoRow('Tipus d\'EPI', _patientData!['epi_type']),
@@ -176,7 +180,8 @@ class _WebDataPageState extends State<WebDataPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
-              child: const Text('Autodiagnòstic'),
+              child: const Text('Autodiagnòstic',
+                  style: TextStyle(fontFamily: 'Roboto')),
             ),
             ElevatedButton(
               onPressed: _onGuiaMedicaPressed,
@@ -186,7 +191,8 @@ class _WebDataPageState extends State<WebDataPage> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
-              child: const Text('Guia Mèdica'),
+              child: const Text('Guia Mèdica',
+                  style: TextStyle(fontFamily: 'Roboto')),
             ),
           ],
         ),
@@ -218,14 +224,14 @@ class _WebDataPageState extends State<WebDataPage> {
             width: 200,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: GoogleFonts.roboto(
                 fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
             ),
           ),
           Expanded(
-            child: Text(value),
+            child: Text(value, style: GoogleFonts.roboto()),
           ),
         ],
       ),
