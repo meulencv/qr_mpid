@@ -30,6 +30,9 @@ class ChatMessages extends StatefulWidget {
 }
 
 class _ChatMessagesState extends State<ChatMessages> {
+  // Añadir controller para el chat
+  final TextEditingController _chatController = TextEditingController();
+  
   final Map<String, String> medicalData = {};
   final Map<String, bool> expandedItems = {};
   final List<String> chatMessages = []; // Añadimos lista de mensajes
@@ -480,6 +483,85 @@ Resposta en català, format estructurat.
     }
   }
 
+  // Añadir función para manejar los mensajes del chat
+  Future<void> _handleChatMessage(String message) async {
+    if (message.trim().isEmpty) return;
+
+    setState(() {
+      chatMessages.add('USUARI:\n\n$message');
+    });
+
+    // Obtener los tratamientos de Supabase (que ya contienen el árbol de decisiones)
+    final treatments = await _getTreatments();
+    
+    // Formatear los tratamientos y su árbol de decisiones
+    String treatmentsData = treatments
+        .map((t) => '''
+Diagnòstic: ${t['diagnostic']}
+Tractament: ${t['tractament']}
+Recomanacions: ${t['recomendaciones'] ?? 'No especificades'}
+Gravetat: ${t['gravedad'] ?? 'No especificada'}
+''')
+        .join('\n---\n');
+
+    // Crear el prompt para la IA incluyendo todo el contexto
+    String prompt = '''
+CONTEXT IMPORTANT: El pacient té MPID (Malaltia Pulmonar Intersticial Difusa). Totes les recomanacions i respostes han de tenir en compte aquesta condició base.
+
+Com a assistent mèdic especialitzat en MPID, tenint en compte:
+
+1. El pacient té MPID com a condició base
+2. L'historial complet del pacient:
+${chatMessages.join('\n')}
+
+3. Els tractaments i protocols disponibles específics per a pacients amb MPID:
+$treatmentsData
+
+4. La pregunta o comentari del metge:
+$message
+
+Proporciona una resposta breu i concisa en català, considerant sempre que el pacient té MPID com a condició principal. Utilitza el coneixement de:
+- La taula de proves mèdiques adaptades per a MPID
+- Els tractaments disponibles i les seves recomanacions específiques per a MPID
+- Els símptomes i diagnòstics anteriors en el context de MPID
+- El context complet del pacient amb MPID
+
+Resposta màxima 3-4 línies.
+''';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.straico.com/v0/prompt/completion'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'anthropic/claude-3.5-sonnet',
+          'message': prompt,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final aiResponse = data['data']['completion']['choices'][0]['message']['content'];
+        
+        setState(() {
+          chatMessages.add('ASSISTENT:\n\n${aiResponse.trim()}');
+        });
+      }
+    } catch (e) {
+      developer.log('Error in chat response: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    _diagnosisController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Modificar la condición para mostrar el diagnóstico
@@ -672,12 +754,6 @@ Resposta en català, format estructurat.
         if (treatmentShown) const ChatInput(), // Mostrar ChatInput si treatmentShown es verdadero
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _diagnosisController.dispose();
-    super.dispose();
   }
 }
 
@@ -996,13 +1072,8 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Obtener el estado de diagnóstico completado
-    final chatMessagesState =
-        context.findAncestorStateOfType<_ChatMessagesState>();
-    final bool shouldShowInput = chatMessagesState?.treatmentShown ?? false;
-
-    // Si no se debe mostrar, retornar un contenedor vacío
-    if (!shouldShowInput) {
+    final chatMessagesState = context.findAncestorStateOfType<_ChatMessagesState>();
+    if (!chatMessagesState!.treatmentShown) {
       return const SizedBox.shrink();
     }
 
@@ -1020,6 +1091,7 @@ class ChatInput extends StatelessWidget {
         children: [
           Expanded(
             child: TextField(
+              controller: chatMessagesState._chatController,
               decoration: InputDecoration(
                 hintText: 'Escriu un missatge...',
                 border: OutlineInputBorder(
@@ -1039,7 +1111,11 @@ class ChatInput extends StatelessWidget {
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.send),
-            onPressed: () {},
+            onPressed: () {
+              final message = chatMessagesState._chatController.text;
+              chatMessagesState._handleChatMessage(message);
+              chatMessagesState._chatController.clear();
+            },
             color: const Color(0xFF007AFF),
           ),
         ],
