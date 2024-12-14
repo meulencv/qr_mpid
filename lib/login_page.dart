@@ -23,33 +23,34 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: const Text('Iniciar Sesión')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              children: [
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(label: Text('Email')),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  obscureText: true,
-                  controller: _passwordController,
-                  decoration: const InputDecoration(label: Text('Password')),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _handleLogin,
-                  child: const Text('Login'),
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/signup'),
-                  child: const Text('Create Account'),
-                ),
-              ],
+          : Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextFormField(
+                    controller: _emailController,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    decoration: const InputDecoration(labelText: 'Contraseña'),
+                    obscureText: true,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _handleLogin,
+                      child: const Text('Iniciar Sesión'),
+                    ),
+                  ),
+                ],
+              ),
             ),
     );
   }
@@ -61,17 +62,32 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-      
+
       if (auth.user != null) {
+        final response = await Supabase.instance.client
+            .from('user_uuids')
+            .select('role')
+            .eq('user_uuid', auth.user!.id)
+            .single();
+
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/');
+          if (response['role'] == 'config') {
+            Navigator.pushReplacementNamed(
+                context, '/config'); // Cambiado de '/survey' a '/config'
+          } else if (response['role'] != null) {
+            Navigator.pushReplacementNamed(context, '/');
+          } else {
+            await Supabase.instance.client.auth.signOut();
+            Navigator.pushReplacementNamed(context, '/verification');
+          }
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Login failed'),
+          SnackBar(
+            content: Text(
+                'Error de inicio de sesión: $e'), // Mejorado el mensaje de error
             backgroundColor: Colors.red,
           ),
         );

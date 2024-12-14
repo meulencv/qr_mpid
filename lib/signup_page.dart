@@ -63,10 +63,7 @@ class _SignupPageState extends State<SignupPage> {
         });
         
         if (mounted) {
-          Navigator.pushReplacementNamed(context, '/login');
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Account created! Please log in')),
-          );
+          Navigator.pushReplacementNamed(context, '/verification');
         }
       }
     } catch (e) {

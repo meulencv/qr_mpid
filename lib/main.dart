@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:qr_mpid/home_page.dart';
+import 'package:qr_mpid/verification_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'menu_page.dart';
 import 'my_widget.dart';
@@ -42,12 +44,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       routes: {
-        '/': (context) => _AuthWrapper(),
+        '/': (context) => const HomePage(), // Cambiar _AuthWrapper por HomePage
         '/login': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
+        '/verification': (context) => const VerificationPage(), // Nueva ruta
         '/config': (context) => const ConfigPage(),
         '/menu': (context) => const MenuPage(),
         '/profile': (context) => const MyWidget(),
+        // Eliminada la ruta '/survey'
       },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
