@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:qr_mpid/home_page.dart';
 import 'package:qr_mpid/verification_page.dart';
@@ -42,20 +43,43 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: '/',
+      home: kIsWeb ? const WebHomePage() : const HomePage(),
       routes: {
-        '/': (context) => const HomePage(), // Cambiar _AuthWrapper por HomePage
-        '/login': (context) => const LoginPage(),
-        '/signup': (context) => const SignupPage(),
-        '/verification': (context) => const VerificationPage(), // Nueva ruta
-        '/config': (context) => const ConfigPage(),
-        '/menu': (context) => const MenuPage(),
-        '/profile': (context) => const MyWidget(),
-        // Eliminada la ruta '/survey'
+        // Solo registrar rutas si no estamos en web
+        if (!kIsWeb) ... {
+          '/login': (context) => const LoginPage(),
+          '/signup': (context) => const SignupPage(),
+          '/verification': (context) => const VerificationPage(),
+          '/config': (context) => const ConfigPage(),
+          '/menu': (context) => const MenuPage(),
+          '/profile': (context) => const MyWidget(),
+        }
       },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
+      ),
+    );
+  }
+}
+
+class WebHomePage extends StatelessWidget {
+  const WebHomePage({Key? key}) : super(key: key);
+
+  String? _getUIDFromUrl() {
+    final uri = Uri.base;
+    return uri.queryParameters['UID'];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final uid = _getUIDFromUrl();
+    
+    return Scaffold(
+      body: Center(
+        child: uid != null 
+          ? Text('UID: $uid', style: const TextStyle(fontSize: 24))
+          : const Text('No UID provided', style: TextStyle(fontSize: 24)),
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Añadir si no está ya incluida
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class HomePage extends StatefulWidget {  // Cambiar a StatefulWidget
   const HomePage({Key? key}) : super(key: key);
@@ -141,6 +142,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Si es web, mostrar página en blanco
+    if (kIsWeb) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
+
+    // El resto del código existente para móvil
     if (savedQrUuid != null) {
       return Scaffold(
         appBar: AppBar(
