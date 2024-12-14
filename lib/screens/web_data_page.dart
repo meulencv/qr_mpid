@@ -114,6 +114,10 @@ class _WebDataPageState extends State<WebDataPage> {
   }
 
   Widget _buildPersonalInfo() {
+    // Calcular edad
+    final birthDate = DateTime.parse(_patientData!['birth_date']);
+    final age = DateTime.now().difference(birthDate).inDays ~/ 365;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -125,6 +129,9 @@ class _WebDataPageState extends State<WebDataPage> {
         
         _buildInfoRow('Nombre', _patientData!['name']),
         _buildInfoRow('Apellidos', _patientData!['surname']),
+        _buildInfoRow('Sexo', _patientData!['sex']),
+        _buildInfoRow('Fecha de nacimiento', 
+          '${birthDate.day}/${birthDate.month}/${birthDate.year} ($age años)'),
         _buildInfoRow('Tarjeta Sanitaria', _patientData!['health_card_number']),
       ],
     );
