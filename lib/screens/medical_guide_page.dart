@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart'; // Añade esta importación
 
 class MedicalGuidePage extends StatelessWidget {
   const MedicalGuidePage({Key? key}) : super(key: key);
@@ -16,14 +17,7 @@ class MedicalGuidePage extends StatelessWidget {
         foregroundColor: Colors.black,
         elevation: 1,
       ),
-      body: const Column(
-        children: [
-          Expanded(
-            child: ChatMessages(),
-          ),
-          ChatInput(),
-        ],
-      ),
+      body: const ChatMessages(),
     );
   }
 }
@@ -52,9 +46,10 @@ class _ChatMessagesState extends State<ChatMessages> {
   final TextEditingController _diagnosisController = TextEditingController();
   bool diagnosesShown = false; // Añadir esta variable
   bool diagnosisCompleted = false; // Añadir esta variable
+  bool treatmentShown = false; // Añade esta variable de estado
 
   final String apiKey =
-      'v2-wZX9sx0k1JffHejsM4WZnnymKxo7yYjc9eLaqVCzojf8qi7w'; // Reemplaza con tu API key de Straico
+      'gh-httRWDnWZ0EcXG6mKwQ4j9cq27fJGWu6OEglX6VrBrRmOArf'; // Reemplaza con tu API key de Straico
 
   final List<String> symptomsList = [
     'Tos persistente (seca)',
@@ -150,7 +145,8 @@ class _ChatMessagesState extends State<ChatMessages> {
                   parsedTests.map((test) => Map<String, dynamic>.from(test)));
               medicalTests.sort((a, b) => _priorityValue(b['prioritat'])
                   .compareTo(_priorityValue(a['prioritat'])));
-              diagnosesShown = true; // Marcar que los diagnósticos se han mostrado
+              diagnosesShown =
+                  true; // Marcar que los diagnósticos se han mostrado
             });
           } catch (e) {
             developer.log('Error parsing JSON: $e');
@@ -183,7 +179,7 @@ class _ChatMessagesState extends State<ChatMessages> {
     setState(() {
       chatMessages.add(resultMessage.trim());
       completedTests.add(testName);
-      
+
       // Eliminar la prueba completada de la lista de pruebas pendientes
       medicalTests.removeWhere((test) => test['nom_prova'] == testName);
 
@@ -199,7 +195,8 @@ class _ChatMessagesState extends State<ChatMessages> {
       medicalTests.removeWhere((test) => test['nom_prova'] == testName);
       // Verificar si ya no quedan pruebas después de eliminar
       if (medicalTests.isEmpty) {
-        showDiagnosisForm = true; // Mostrar formulario de diagnóstico si no quedan pruebas
+        showDiagnosisForm =
+            true; // Mostrar formulario de diagnóstico si no quedan pruebas
       }
     });
   }
@@ -404,197 +401,275 @@ Resposta en català, màxim 3-4 línies.
     }
   }
 
-  void _sendDiagnosis() {
+  // Añade esta función para obtener los tratamientos de Supabase
+  Future<List<Map<String, dynamic>>> _getTreatments() async {
+    try {
+      final response =
+          await Supabase.instance.client.from('tratamientos_clinicos').select();
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      developer.log('Error fetching treatments: $e');
+      return [];
+    }
+  }
+
+  // Modifica la función _sendDiagnosis para incluir la recomendación de tratamiento
+  void _sendDiagnosis() async {
     if (_diagnosisController.text.isEmpty) return;
 
     setState(() {
       chatMessages.add('DIAGNÒSTIC FINAL:\n\n${_diagnosisController.text}');
       showDiagnosisForm = false;
-      diagnosisCompleted = true; // Marcar que el diagnóstico está completado
+      diagnosisCompleted = true;
     });
+
+    // Obtener los tratamientos de Supabase
+    final treatments = await _getTreatments();
+
+    // Preparar el prompt para la IA con los tratamientos disponibles
+    String treatmentsData = treatments
+        .map((t) =>
+            "Diagnòstic: ${t['diagnostic']}\nTractament: ${t['tractament']}")
+        .join('\n\n');
+
+    String prompt = '''
+Basant-te en el següent diagnòstic del pacient amb MPID:
+${_diagnosisController.text}
+
+I tenint en compte l'històric de dades i proves:
+${chatMessages.join('\n')}
+
+Analitza la següent taula de tractaments disponibles i recomana el més adequat:
+$treatmentsData
+
+Proporciona:
+1. El tractament més adequat
+2. Justificació de l'elecció
+3. Precaucions o consideracions especials
+4. Seguiment recomanat
+
+Resposta en català, format estructurat.
+''';
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.straico.com/v0/prompt/completion'),
+        headers: {
+          'Authorization': 'Bearer $apiKey',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'anthropic/claude-3.5-sonnet',
+          'message': prompt,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        final treatment =
+            data['data']['completion']['choices'][0]['message']['content'];
+
+        setState(() {
+          chatMessages.add('RECOMANACIÓ DE TRACTAMENT:\n\n$treatment');
+          treatmentShown = true;
+        });
+      }
+    } catch (e) {
+      developer.log('Error getting treatment recommendation: $e');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // Modificar la condición para mostrar el diagnóstico
-    bool shouldShowDiagnosis = medicalTests.isEmpty && 
-                             !showDiagnosisForm && 
-                             diagnosesShown &&
-                             !diagnosisCompleted; // Añadir esta condición
+    bool shouldShowDiagnosis = medicalTests.isEmpty &&
+        !showDiagnosisForm &&
+        diagnosesShown &&
+        !diagnosisCompleted &&
+        !treatmentShown; // Añadir esta condición
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return Column(
       children: [
-        ...chatMessages.map((message) => UserMessage(text: message)),
-        if (showForm)
-          SystemMessage(
-            title: "Sistema d'Assistència Monitoritzada per IA",
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Selecciona i omple les dades disponibles:',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                ...checkItems.map((item) => MedicalChecklistItem(
-                      item: item,
-                      isExpanded: expandedItems[item.key] ?? false,
-                      value: medicalData[item.key] ?? '',
-                      onChanged: (expanded) {
-                        setState(() {
-                          expandedItems[item.key] = expanded;
-                        });
-                      },
-                      onValueChanged: (value) {
-                        setState(() {
-                          medicalData[item.key] = value;
-                        });
-                      },
-                    )),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _sendData,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    minimumSize: const Size(double.infinity, 45),
-                  ),
-                  child: const Text('Enviar dades'),
-                ),
-              ],
-            ),
-          ),
-        if (showSymptoms)
-          SystemMessage(
-            title: 'Símptomes del pacient',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Selecciona els símptomes presents:',
-                  style: TextStyle(fontSize: 16),
-                ),
-                const SizedBox(height: 16),
-                ...symptomsList.map((symptom) => CheckboxListTile(
-                      title: Text(symptom),
-                      value: symptoms[symptom] ?? false,
-                      onChanged: (bool? value) {
-                        setState(() {
-                          symptoms[symptom] = value ?? false;
-                        });
-                      },
-                      activeColor: const Color(0xFF007AFF),
-                    )),
-                if (symptoms['Otros'] ?? false)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Descriu altres símptomes...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        filled: true,
-                        fillColor: const Color(0xFFF7F7F8),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              ...chatMessages.map((message) => UserMessage(text: message)),
+              if (showForm)
+                SystemMessage(
+                  title: "Sistema d'Assistència Monitoritzada per IA",
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Selecciona i omple les dades disponibles:',
+                        style: TextStyle(fontSize: 16),
                       ),
-                      onChanged: (value) => otherSymptoms = value,
-                      maxLines: null,
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _sendSymptoms,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF007AFF),
-                    minimumSize: const Size(double.infinity, 45),
-                  ),
-                  child: const Text('Enviar símptomes'),
-                ),
-              ],
-            ),
-          ),
-        // Mostrar las pruebas pendientes
-        ...medicalTests.map((test) => MedicalTestCard(
-              test: test,
-              onResultSubmit: _sendTestResult,
-              onRemove: _removeTest,
-            )),
-
-        // Mostrar el botón de diagnóstico cuando no queden pruebas
-        if (shouldShowDiagnosis)
-          Padding(
-            padding: const EdgeInsets.only(top: 16.0),
-            child: SystemMessage(
-              title: 'Diagnòstic',
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Totes les proves s\'han completat o descartat. Vols procedir amb el diagnòstic?',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => setState(() => showDiagnosisForm = true),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF007AFF),
-                      minimumSize: const Size(double.infinity, 45),
-                    ),
-                    child: const Text('Introduir diagnòstic'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        if (showDiagnosisForm)
-          SystemMessage(
-            title: 'Diagnòstic Final',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _diagnosisController,
-                  decoration: InputDecoration(
-                    hintText: 'Escriu el diagnòstic...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  maxLines: null,
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: _sendDiagnosis,
+                      const SizedBox(height: 16),
+                      ...checkItems.map((item) => MedicalChecklistItem(
+                            item: item,
+                            isExpanded: expandedItems[item.key] ?? false,
+                            value: medicalData[item.key] ?? '',
+                            onChanged: (expanded) {
+                              setState(() {
+                                expandedItems[item.key] = expanded;
+                              });
+                            },
+                            onValueChanged: (value) {
+                              setState(() {
+                                medicalData[item.key] = value;
+                              });
+                            },
+                          )),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _sendData,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF007AFF),
                           minimumSize: const Size(double.infinity, 45),
                         ),
-                        child: const Text('Enviar diagnòstic'),
+                        child: const Text('Enviar dades'),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _getDiagnosisSuggestion,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[200],
-                        minimumSize: const Size(45, 45),
-                      ),
-                      child:
-                          const Icon(Icons.psychology, color: Colors.black54),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              if (showSymptoms)
+                SystemMessage(
+                  title: 'Símptomes del pacient',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Selecciona els símptomes presents:',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                      ...symptomsList.map((symptom) => CheckboxListTile(
+                            title: Text(symptom),
+                            value: symptoms[symptom] ?? false,
+                            onChanged: (bool? value) {
+                              setState(() {
+                                symptoms[symptom] = value ?? false;
+                              });
+                            },
+                            activeColor: const Color(0xFF007AFF),
+                          )),
+                      if (symptoms['Otros'] ?? false)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: TextField(
+                            decoration: InputDecoration(
+                              hintText: 'Descriu altres símptomes...',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide.none,
+                              ),
+                              filled: true,
+                              fillColor: const Color(0xFFF7F7F8),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                            ),
+                            onChanged: (value) => otherSymptoms = value,
+                            maxLines: null,
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _sendSymptoms,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF007AFF),
+                          minimumSize: const Size(double.infinity, 45),
+                        ),
+                        child: const Text('Enviar símptomes'),
+                      ),
+                    ],
+                  ),
+                ),
+              // Mostrar las pruebas pendientes
+              ...medicalTests.map((test) => MedicalTestCard(
+                    test: test,
+                    onResultSubmit: _sendTestResult,
+                    onRemove: _removeTest,
+                  )),
+
+              // Mostrar el botón de diagnóstico cuando no queden pruebas
+              if (shouldShowDiagnosis)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: SystemMessage(
+                    title: 'Diagnòstic',
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Totes les proves s\'han completat o descartat. Vols procedir amb el diagnòstic?',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () =>
+                              setState(() => showDiagnosisForm = true),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF007AFF),
+                            minimumSize: const Size(double.infinity, 45),
+                          ),
+                          child: const Text('Introduir diagnòstic'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (showDiagnosisForm)
+                SystemMessage(
+                  title: 'Diagnòstic Final',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _diagnosisController,
+                        decoration: InputDecoration(
+                          hintText: 'Escriu el diagnòstic...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        maxLines: null,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: _sendDiagnosis,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF007AFF),
+                                minimumSize: const Size(double.infinity, 45),
+                              ),
+                              child: const Text('Enviar diagnòstic'),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: _getDiagnosisSuggestion,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.grey[200],
+                              minimumSize: const Size(45, 45),
+                            ),
+                            child: const Icon(Icons.psychology,
+                                color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
+        ),
+        if (treatmentShown) const ChatInput(), // Mostrar ChatInput si treatmentShown es verdadero
       ],
     );
   }
@@ -921,6 +996,16 @@ class ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el estado de diagnóstico completado
+    final chatMessagesState =
+        context.findAncestorStateOfType<_ChatMessagesState>();
+    final bool shouldShowInput = chatMessagesState?.treatmentShown ?? false;
+
+    // Si no se debe mostrar, retornar un contenedor vacío
+    if (!shouldShowInput) {
+      return const SizedBox.shrink();
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
