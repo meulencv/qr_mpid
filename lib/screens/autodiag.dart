@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:qr_mpid/screens/web_data_page.dart'; // Import WebDataPage
 
 // Custom color scheme
 final customColors = {
@@ -79,6 +80,7 @@ class BaseQuestionScreen extends StatelessWidget {
   final Widget content;
   final Widget? button;
   final double progress;
+  final bool isFirstQuestion;
 
   BaseQuestionScreen({
     required this.title,
@@ -86,6 +88,7 @@ class BaseQuestionScreen extends StatelessWidget {
     required this.content,
     this.button,
     required this.progress,
+    this.isFirstQuestion = false,
   });
 
   @override
@@ -164,6 +167,23 @@ class BaseQuestionScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 24),
                       if (button != null) button!,
+                      SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          if (isFirstQuestion) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => WebDataPage()),
+                              (route) => false,
+                            );
+                          } else {
+                            Navigator.pop(context);
+                          }
+                        },
+                        icon: Icon(Icons.arrow_back),
+                        label: Text('Volver'),
+                      ),
                     ],
                   ),
                 ),
@@ -229,6 +249,7 @@ class _FeverQuestionScreenState extends State<FeverQuestionScreen> {
         icon: Icon(Icons.arrow_forward),
         label: Text('Següent'),
       ),
+      isFirstQuestion: true,
     );
   }
 }
