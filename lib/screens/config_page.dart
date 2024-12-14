@@ -43,6 +43,8 @@ class _ConfigPageState extends State<ConfigPage> {
   final _otherEpiController = TextEditingController();
   final _otherCausaController = TextEditingController();
   final _alergiaController = TextEditingController();
+  final _birthDateController = TextEditingController();
+  String? _selectedSex;
 
   bool _inmunosupresion = false;
   bool _hasComorbilidades = false;
@@ -78,6 +80,8 @@ class _ConfigPageState extends State<ConfigPage> {
     "Exacerbació aguda de la malaltia pulmonar intersticial de base"
   ];
 
+  final List<String> sexOptions = ['Home', 'Dona'];
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -90,6 +94,7 @@ class _ConfigPageState extends State<ConfigPage> {
     _otherEpiController.dispose();
     _otherCausaController.dispose();
     _alergiaController.dispose();
+    _birthDateController.dispose();
     super.dispose();
   }
 
@@ -119,7 +124,8 @@ class _ConfigPageState extends State<ConfigPage> {
               'health_card_number': _healthCardController.text,
               'access_code': _accessCode,
               'epi_type': _selectedEpi,
-              'other_epi_type': _isOtherSelected ? _otherEpiController.text : null,
+              'other_epi_type':
+                  _isOtherSelected ? _otherEpiController.text : null,
               'selected_causes': _selectedCausas,
               'other_cause': _otherCausaController.text,
               'treatment': _tratamientoController.text,
@@ -127,6 +133,8 @@ class _ConfigPageState extends State<ConfigPage> {
               'has_comorbidities': _hasComorbilidades,
               'comorbidities': _comorbilidadesController.text,
               'drug_allergies': _alergiaController.text,
+              'birth_date': _birthDateController.text,
+              'sex': _selectedSex,
             })
             .select()
             .single();
@@ -146,6 +154,21 @@ class _ConfigPageState extends State<ConfigPage> {
       } finally {
         if (mounted) setState(() => _loading = false);
       }
+    }
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _birthDateController.text =
+            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
     }
   }
 
@@ -242,9 +265,41 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       validator: (value) {
                         if (value?.isEmpty ?? true) return 'Camp obligatori';
-                        if (value!.length != 14) return 'Ha de tenir 14 caràcters';
+                        if (value!.length != 14)
+                          return 'Ha de tenir 14 caràcters';
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _birthDateController,
+                      decoration: const InputDecoration(
+                        labelText: 'Data de naixement',
+                        suffixIcon: Icon(Icons.calendar_today),
+                      ),
+                      readOnly: true,
+                      onTap: () => _selectDate(context),
+                      validator: _validator,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      decoration: const InputDecoration(
+                        labelText: 'Sexe',
+                      ),
+                      value: _selectedSex,
+                      items: sexOptions.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedSex = newValue;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Seleccioni el sexe' : null,
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
@@ -267,7 +322,6 @@ class _ConfigPageState extends State<ConfigPage> {
                       validator: (value) =>
                           value == null ? 'Seleccioni un tipus de MPID' : null,
                     ),
-
                     if (_isOtherSelected)
                       TextFormField(
                         controller: _otherEpiController,
@@ -276,13 +330,12 @@ class _ConfigPageState extends State<ConfigPage> {
                         ),
                         validator: _validator,
                       ),
-
                     const SizedBox(height: 16),
                     const Text(
                       'Causes potencials d\'agudització',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
-
                     Column(
                       children: opcionesCausas.map((String causa) {
                         return CheckboxListTile(
@@ -300,7 +353,6 @@ class _ConfigPageState extends State<ConfigPage> {
                         );
                       }).toList(),
                     ),
-
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _otherCausaController,
@@ -309,7 +361,6 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       validator: _validator,
                     ),
-
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _tratamientoController,
@@ -341,7 +392,6 @@ class _ConfigPageState extends State<ConfigPage> {
                         });
                       },
                     ),
-
                     if (_hasComorbilidades)
                       TextFormField(
                         controller: _comorbilidadesController,
@@ -355,7 +405,6 @@ class _ConfigPageState extends State<ConfigPage> {
                           return null;
                         },
                       ),
-
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _alergiaController,
@@ -364,7 +413,6 @@ class _ConfigPageState extends State<ConfigPage> {
                       ),
                       validator: _validator,
                     ),
-
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
