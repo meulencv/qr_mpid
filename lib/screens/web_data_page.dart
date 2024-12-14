@@ -122,7 +122,9 @@ class _WebDataPageState extends State<WebDataPage> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        _buildInfoRow('Nombre', '${_patientData!['name']} ${_patientData!['surname']}'),
+        
+        _buildInfoRow('Nombre', _patientData!['name']),
+        _buildInfoRow('Apellidos', _patientData!['surname']),
         _buildInfoRow('Tarjeta Sanitaria', _patientData!['health_card_number']),
       ],
     );
@@ -138,11 +140,21 @@ class _WebDataPageState extends State<WebDataPage> {
         ),
         const SizedBox(height: 10),
         _buildInfoRow('Tipo de EPI', _patientData!['epi_type']),
-        _buildInfoRow('Causas de agudización', _patientData!['causes'] ?? 'No especificado'),
-        _buildInfoRow('Tratamiento', _patientData!['treatment'] ?? 'No especificado'),
+        if (_patientData!['other_epi_type'] != null)
+          _buildInfoRow('Otro tipo de EPI', _patientData!['other_epi_type']),
+        _buildInfoRow('Causas seleccionadas', 
+          (_patientData!['selected_causes'] as List).join(', ')),
+        if (_patientData!['other_cause'] != null)
+          _buildInfoRow('Otra causa', _patientData!['other_cause']),
+        _buildInfoRow('Tratamiento', _patientData!['treatment']),
         _buildInfoRow('Estado de inmunosupresión', 
           _patientData!['immunosuppression'] ? 'Sí' : 'No'),
-        _buildInfoRow('Comorbilidades', _patientData!['comorbidities'] ?? 'No especificado'),
+        if (_patientData!['has_comorbidities'])
+          _buildInfoRow('Comorbilidades', _patientData!['comorbidities'] ?? '')
+        else
+          _buildInfoRow('Tiene comorbilidades', 'No'),
+        if (_patientData!['drug_allergies'] != null)
+          _buildInfoRow('Alergias a medicamentos', _patientData!['drug_allergies']),
         const SizedBox(height: 30),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
