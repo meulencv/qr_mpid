@@ -23,7 +23,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Iniciar Sesión')),
+      appBar: AppBar(title: const Text('Iniciar Sessió')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Padding(
@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Contraseña'),
+                    decoration: const InputDecoration(labelText: 'Contrasenya'),
                     obscureText: true,
                   ),
                   const SizedBox(height: 24),
@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _handleLogin,
-                      child: const Text('Iniciar Sesión'),
+                      child: const Text('Iniciar Sessió'),
                     ),
                   ),
                 ],
@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error de inicio de sesión: $e'), // Mejorado el mensaje de error
+                'Error de inici de sessió: $e'), // Mejorado el mensaje de error
             backgroundColor: Colors.red,
           ),
         );

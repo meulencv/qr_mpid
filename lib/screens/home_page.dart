@@ -47,13 +47,13 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (result != null && context.mounted) {
-      print('URL escaneada: $result'); // Imprimir URL completa
+      print('URL escanejada: $result'); // Imprimir URL completa
       final qrUuid = _extractUuidFromUrl(result);
-      print('UUID extraído: $qrUuid'); // Imprimir UUID extraído
+      print('UUID extret: $qrUuid'); // Imprimir UUID extraído
       
       if (qrUuid == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QR inválido: no se encontró UUID')),
+          const SnackBar(content: Text('QR invàlid: no s\'ha trobat UUID')),
         );
         return;
       }
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
 
       if (!uuidRegExp.hasMatch(qrUuid)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('QR inválido: UUID mal formateado')),
+          const SnackBar(content: Text('QR invàlid: UUID mal format')),
         );
         return;
       }
@@ -92,11 +92,11 @@ class _HomePageState extends State<HomePage> {
                 savedQrFullUrl = result;  // Actualizar URL completa en el estado
               });
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Acceso concedido')),
+                const SnackBar(content: Text('Accés concedit')),
               );
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Contraseña incorrecta')),
+                const SnackBar(content: Text('Contrasenya incorrecta')),
               );
             }
           }
@@ -117,18 +117,18 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         String password = '';
         return AlertDialog(
-          title: const Text('Introduce la contraseña'),
+          title: const Text('Introdueix la contrasenya'),
           content: TextField(
             obscureText: true,
             onChanged: (value) => password = value,
             decoration: const InputDecoration(
-              hintText: 'Contraseña',
+              hintText: 'Contrasenya',
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: const Text('Cancel·lar'),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, password),
@@ -151,7 +151,7 @@ class _HomePageState extends State<HomePage> {
     if (savedQrUuid != null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('QR Guardado'),
+          title: const Text('QR Guardat'),
           actions: [
             IconButton(
               icon: const Icon(Icons.logout),
@@ -200,7 +200,7 @@ class _HomePageState extends State<HomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Text(
-                'Mi App',
+                'La Meva App',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -212,7 +212,7 @@ class _HomePageState extends State<HomePage> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () => Navigator.pushNamed(context, '/signup'),
-                  child: const Text('Crear Cuenta'),
+                  child: const Text('Crear Compte'),
                 ),
               ),
               const SizedBox(height: 16),
@@ -224,7 +224,7 @@ class _HomePageState extends State<HomePage> {
                       height: 50,
                       child: ElevatedButton(
                         onPressed: () => Navigator.pushNamed(context, '/login'),
-                        child: const Text('Iniciar Sesión'),
+                        child: const Text('Iniciar Sessió'),
                       ),
                     ),
                   ),
@@ -268,7 +268,7 @@ class _QRViewExampleState extends State<QRViewExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Escanear QR')),
+      appBar: AppBar(title: const Text('Escanejar QR')),
       body: MobileScanner(
         controller: controller,
         onDetect: (capture) {
