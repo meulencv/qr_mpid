@@ -1,9 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:qr_flutter/qr_flutter.dart'; // Añadir si no está ya incluida
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {  // Cambiar a StatefulWidget
   const HomePage({Key? key}) : super(key: key);
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? savedQrUuid;
+  String? savedQrFullUrl;  // Variable para guardar la URL completa
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedQR();
+  }
+
+  Future<void> _loadSavedQR() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      savedQrUuid = prefs.getString('saved_qr_uuid');
+      savedQrFullUrl = prefs.getString('saved_qr_full_url');  // Cargar URL completa
+    });
+  }
+
+  String? _extractUuidFromUrl(String url) {
+    try {
+      final uri = Uri.parse(url);
+      final uid = uri.queryParameters['UID'];
+      return uid;
+    } catch (e) {
+      return null;
+    }
+  }
 
   Future<void> _scanQR(BuildContext context) async {
     final result = await Navigator.push(
@@ -12,26 +46,53 @@ class HomePage extends StatelessWidget {
     );
 
     if (result != null && context.mounted) {
-      // Mostrar diálogo para introducir contraseña
+      print('URL escaneada: $result'); // Imprimir URL completa
+      final qrUuid = _extractUuidFromUrl(result);
+      print('UUID extraído: $qrUuid'); // Imprimir UUID extraído
+      
+      if (qrUuid == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('QR inválido: no se encontró UUID')),
+        );
+        return;
+      }
+
+      // Validar formato UUID
+      final uuidRegExp = RegExp(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+        caseSensitive: false,
+      );
+
+      if (!uuidRegExp.hasMatch(qrUuid)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('QR inválido: UUID mal formateado')),
+        );
+        return;
+      }
+
       final password = await _showPasswordDialog(context);
       if (password != null) {
         try {
           final response = await Supabase.instance.client.rpc(
             'verify_qr_access',
             params: {
-              'qr_uuid': result,
+              'qr_uuid': qrUuid.toLowerCase(), // Asegurar que el UUID esté en minúsculas
               'password': password,
             },
           );
 
           if (context.mounted) {
             if (response != false) {
-              // QR válido, navegar a la siguiente pantalla
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.setString('saved_qr_uuid', qrUuid);
+              await prefs.setString('saved_qr_full_url', result);  // Guardar URL completa
+              setState(() {
+                savedQrUuid = qrUuid;
+                savedQrFullUrl = result;  // Actualizar URL completa en el estado
+              });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Acceso concedido')),
               );
-              // Aquí puedes navegar a la pantalla de datos del paciente
-              // Navigator.pushNamed(context, '/patient_data', arguments: response);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Contraseña incorrecta')),
@@ -80,6 +141,50 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (savedQrUuid != null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('QR Guardado'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.logout),
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('saved_qr_uuid');
+                setState(() {
+                  savedQrUuid = null;
+                });
+              },
+            ),
+          ],
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 250,
+                height: 250,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: QrImageView(
+                  data: savedQrFullUrl!,  // Usar la URL completa original
+                  version: QrVersions.auto,
+                  size: 250.0,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text('URL: $savedQrFullUrl',  // Mostrar la URL completa
+                style: const TextStyle(fontSize: 16),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: Center(
         child: Padding(
