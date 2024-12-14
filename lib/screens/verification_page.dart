@@ -28,7 +28,7 @@ class VerificationPage extends StatelessWidget {
                     ),
                     SizedBox(height: 16),
                     Text(
-                      'Esperando verificación de permisos',
+                      'Esperant verificació de permisos',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -37,7 +37,7 @@ class VerificationPage extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Tu cuenta está pendiente de aprobación. Por favor, inicia sesión más tarde para verificar el estado.',
+                      'El teu compte està pendent d\'aprovació. Si us plau, inicia sessió més tard per verificar l\'estat.',
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -45,8 +45,9 @@ class VerificationPage extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
-                child: const Text('Iniciar Sesión'),
+                onPressed: () =>
+                    Navigator.pushReplacementNamed(context, '/login'),
+                child: const Text('Iniciar Sessió'),
               ),
             ],
           ),

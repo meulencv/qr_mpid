@@ -8,12 +8,12 @@ class MenuPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MENU'),
+        title: const Text('MENÚ'),
         actions: [
           IconButton(
             icon: const Icon(Icons.phone_android),
             onPressed: () {
-              // Simular recarga como si estuviera en un móvil
+              // Simular recarga como si estuviera en un mòbil
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const MyWidget()),
@@ -23,7 +23,7 @@ class MenuPage extends StatelessWidget {
         ],
       ),
       body: const Center(
-        child: Text('MENU'),
+        child: Text('MENÚ'),
       ),
     );
   }

@@ -29,7 +29,7 @@ class _WebDataPageState extends State<WebDataPage> {
   Future<void> _loadPatientData() async {
     final uid = _getUIDFromUrl();
     if (uid == null) {
-      setState(() => _error = 'No se proporcionó UID');
+      setState(() => _error = 'No s\'ha proporcionat UID');
       return;
     }
 
@@ -40,13 +40,13 @@ class _WebDataPageState extends State<WebDataPage> {
           .select()
           .eq('qr_uuid', uid)
           .single();
-      
+
       setState(() {
         _patientData = response;
         _error = null;
       });
     } catch (e) {
-      setState(() => _error = 'Error al cargar los datos del paciente');
+      setState(() => _error = 'Error en carregar les dades del pacient');
     } finally {
       setState(() => _loading = false);
     }
@@ -56,16 +56,18 @@ class _WebDataPageState extends State<WebDataPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Datos del Paciente'),
+        title: const Text('Dades del Pacient'),
         backgroundColor: Colors.deepPurple,
         foregroundColor: Colors.white,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.red)))
+              ? Center(
+                  child:
+                      Text(_error!, style: const TextStyle(color: Colors.red)))
               : _patientData == null
-                  ? const Center(child: Text('No se encontraron datos'))
+                  ? const Center(child: Text('No s\'han trobat dades'))
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(20),
                       child: Center(
@@ -98,7 +100,7 @@ class _WebDataPageState extends State<WebDataPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'HISTORIA CLÍNICA',
+          'HISTÒRIA CLÍNICA',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -106,7 +108,7 @@ class _WebDataPageState extends State<WebDataPage> {
           ),
         ),
         Text(
-          'Fecha de registro: ${DateTime.parse(_patientData!['created_at']).toLocal().toString().split('.')[0]}',
+          'Data de registre: ${DateTime.parse(_patientData!['created_at']).toLocal().toString().split('.')[0]}',
           style: const TextStyle(color: Colors.grey),
         ),
       ],
@@ -122,17 +124,16 @@ class _WebDataPageState extends State<WebDataPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Información Personal',
+          'Informació Personal',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        
-        _buildInfoRow('Nombre', _patientData!['name']),
-        _buildInfoRow('Apellidos', _patientData!['surname']),
-        _buildInfoRow('Sexo', _patientData!['sex']),
-        _buildInfoRow('Fecha de nacimiento', 
-          '${birthDate.day}/${birthDate.month}/${birthDate.year} ($age años)'),
-        _buildInfoRow('Tarjeta Sanitaria', _patientData!['health_card_number']),
+        _buildInfoRow('Nom', _patientData!['name']),
+        _buildInfoRow('Cognoms', _patientData!['surname']),
+        _buildInfoRow('Sexe', _patientData!['sex']),
+        _buildInfoRow('Data de naixement',
+            '${birthDate.day}/${birthDate.month}/${birthDate.year} ($age anys)'),
+        _buildInfoRow('Targeta Sanitària', _patientData!['health_card_number']),
       ],
     );
   }
@@ -142,26 +143,27 @@ class _WebDataPageState extends State<WebDataPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Información Médica',
+          'Informació Mèdica',
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
-        _buildInfoRow('Tipo de EPI', _patientData!['epi_type']),
+        _buildInfoRow('Tipus d\'EPI', _patientData!['epi_type']),
         if (_patientData!['other_epi_type'] != null)
-          _buildInfoRow('Otro tipo de EPI', _patientData!['other_epi_type']),
-        _buildInfoRow('Causas seleccionadas', 
-          (_patientData!['selected_causes'] as List).join(', ')),
+          _buildInfoRow('Altres tipus d\'EPI', _patientData!['other_epi_type']),
+        _buildInfoRow('Causes seleccionades',
+            (_patientData!['selected_causes'] as List).join(', ')),
         if (_patientData!['other_cause'] != null)
-          _buildInfoRow('Otra causa', _patientData!['other_cause']),
-        _buildInfoRow('Tratamiento', _patientData!['treatment']),
-        _buildInfoRow('Estado de inmunosupresión', 
-          _patientData!['immunosuppression'] ? 'Sí' : 'No'),
+          _buildInfoRow('Altres causes', _patientData!['other_cause']),
+        _buildInfoRow('Tractament', _patientData!['treatment']),
+        _buildInfoRow('Estat d\'immunosupressió',
+            _patientData!['immunosuppression'] ? 'Sí' : 'No'),
         if (_patientData!['has_comorbidities'])
-          _buildInfoRow('Comorbilidades', _patientData!['comorbidities'] ?? '')
+          _buildInfoRow('Comorbiditats', _patientData!['comorbidities'] ?? '')
         else
-          _buildInfoRow('Tiene comorbilidades', 'No'),
+          _buildInfoRow('Té comorbiditats', 'No'),
         if (_patientData!['drug_allergies'] != null)
-          _buildInfoRow('Alergias a medicamentos', _patientData!['drug_allergies']),
+          _buildInfoRow(
+              'Al·lèrgies a medicaments', _patientData!['drug_allergies']),
         const SizedBox(height: 30),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -171,18 +173,20 @@ class _WebDataPageState extends State<WebDataPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
-              child: const Text('Autodiagnóstico'),
+              child: const Text('Autodiagnòstic'),
             ),
             ElevatedButton(
               onPressed: _onGuiaMedicaPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
               ),
-              child: const Text('Guía Médica'),
+              child: const Text('Guia Mèdica'),
             ),
           ],
         ),

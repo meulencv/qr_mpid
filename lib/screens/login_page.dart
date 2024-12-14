@@ -33,7 +33,8 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
+                    decoration:
+                        const InputDecoration(labelText: 'Correu electrònic'),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -87,7 +88,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                'Error de inici de sessió: $e'), // Mejorado el mensaje de error
+                'Error d\'inici de sessió: $e'), // Mejorado el mensaje de error
             backgroundColor: Colors.red,
           ),
         );

@@ -23,7 +23,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up')),
+      appBar: AppBar(title: const Text('Registrar-se')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -31,18 +31,19 @@ class _SignupPageState extends State<SignupPage> {
               children: [
                 TextFormField(
                   controller: _emailController,
-                  decoration: const InputDecoration(label: Text('Email')),
+                  decoration:
+                      const InputDecoration(label: Text('Correu electrònic')),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   obscureText: true,
                   controller: _passwordController,
-                  decoration: const InputDecoration(label: Text('Password')),
+                  decoration: const InputDecoration(label: Text('Contrasenya')),
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: _handleSignup,
-                  child: const Text('Create Account'),
+                  child: const Text('Crear Compte'),
                 ),
               ],
             ),
@@ -61,7 +62,7 @@ class _SignupPageState extends State<SignupPage> {
         await Supabase.instance.client.rpc('insert_user_uuid', params: {
           'user_uuid': auth.user!.id,
         });
-        
+
         if (mounted) {
           Navigator.pushReplacementNamed(context, '/verification');
         }
@@ -69,7 +70,9 @@ class _SignupPageState extends State<SignupPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Signup failed: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('El registre ha fallat: $e'),
+              backgroundColor: Colors.red),
         );
       }
     } finally {

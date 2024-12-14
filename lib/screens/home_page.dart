@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Añadir si no está ya incluida
 import 'package:flutter/foundation.dart' show kIsWeb;
 
-class HomePage extends StatefulWidget {  // Cambiar a StatefulWidget
+class HomePage extends StatefulWidget {
+  // Cambiar a StatefulWidget
   const HomePage({Key? key}) : super(key: key);
 
   @override
@@ -14,7 +15,7 @@ class HomePage extends StatefulWidget {  // Cambiar a StatefulWidget
 
 class _HomePageState extends State<HomePage> {
   String? savedQrUuid;
-  String? savedQrFullUrl;  // Variable para guardar la URL completa
+  String? savedQrFullUrl; // Variable para guardar la URL completa
 
   @override
   void initState() {
@@ -26,7 +27,8 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       savedQrUuid = prefs.getString('saved_qr_uuid');
-      savedQrFullUrl = prefs.getString('saved_qr_full_url');  // Cargar URL completa
+      savedQrFullUrl =
+          prefs.getString('saved_qr_full_url'); // Cargar URL completa
     });
   }
 
@@ -50,7 +52,7 @@ class _HomePageState extends State<HomePage> {
       print('URL escanejada: $result'); // Imprimir URL completa
       final qrUuid = _extractUuidFromUrl(result);
       print('UUID extret: $qrUuid'); // Imprimir UUID extraído
-      
+
       if (qrUuid == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('QR invàlid: no s\'ha trobat UUID')),
@@ -77,7 +79,8 @@ class _HomePageState extends State<HomePage> {
           final response = await Supabase.instance.client.rpc(
             'verify_qr_access',
             params: {
-              'qr_uuid': qrUuid.toLowerCase(), // Asegurar que el UUID esté en minúsculas
+              'qr_uuid': qrUuid
+                  .toLowerCase(), // Asegurar que el UUID esté en minúsculas
               'password': password,
             },
           );
@@ -86,10 +89,11 @@ class _HomePageState extends State<HomePage> {
             if (response != false) {
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('saved_qr_uuid', qrUuid);
-              await prefs.setString('saved_qr_full_url', result);  // Guardar URL completa
+              await prefs.setString(
+                  'saved_qr_full_url', result); // Guardar URL completa
               setState(() {
                 savedQrUuid = qrUuid;
-                savedQrFullUrl = result;  // Actualizar URL completa en el estado
+                savedQrFullUrl = result; // Actualizar URL completa en el estado
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Accés concedit')),
@@ -177,13 +181,14 @@ class _HomePageState extends State<HomePage> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: QrImageView(
-                  data: savedQrFullUrl!,  // Usar la URL completa original
+                  data: savedQrFullUrl!, // Usar la URL completa original
                   version: QrVersions.auto,
                   size: 250.0,
                 ),
               ),
               const SizedBox(height: 20),
-              Text('URL: $savedQrFullUrl',  // Mostrar la URL completa
+              Text(
+                'URL: $savedQrFullUrl', // Mostrar la URL completa
                 style: const TextStyle(fontSize: 16),
               ),
             ],
