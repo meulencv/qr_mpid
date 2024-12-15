@@ -14,13 +14,18 @@ class MedicalGuidePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
+        elevation: 0,
         title: Text(
           'Guia Mèdica (AI)',
-          style: GoogleFonts.roboto(), // Aplicar fuente Roboto
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            color: Colors.white,
+          ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        backgroundColor: Color(0xFF304982),
+        foregroundColor: Colors.white,
+        centerTitle: true,
       ),
       body: const ChatMessages(),
     );

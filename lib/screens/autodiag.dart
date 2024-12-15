@@ -1309,17 +1309,29 @@ class ResultScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Color(0xFFF5F6FA),
+      backgroundColor: Color(0xFFF5F5F7),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: Color(0xFF304982),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => WebDataPage()),
+              (route) => false,
+            );
+          },
+        ),
         title: Text(
           'Resultats',
           style: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            color: Colors.white,
           ),
         ),
+        backgroundColor: Color(0xFF304982),
+        foregroundColor: Colors.white,
         centerTitle: true,
       ),
       body: CustomScrollView(
