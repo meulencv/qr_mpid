@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,46 +24,106 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
-        title: const Text('Iniciar Sessió',
-            style: TextStyle(fontFamily: 'Roboto')),
-        backgroundColor: const Color(0xFF4b66a6),
+        title: Text(
+          'Iniciar Sessió',
+          style: GoogleFonts.roboto(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextFormField(
-                    controller: _emailController,
-                    decoration:
-                        const InputDecoration(labelText: 'Correu electrònic'),
-                    style: GoogleFonts.roboto(),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Contrasenya'),
-                    obscureText: true,
-                    style: GoogleFonts.roboto(),
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleLogin,
-                      child: const Text('Iniciar Sessió',
-                          style: TextStyle(fontFamily: 'Roboto')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF4b66a6),
+      body: SafeArea(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 48),
+                    Text(
+                      'Benvingut/da de nou',
+                      style: GoogleFonts.roboto(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF4B66A6),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      'Introdueix les teves credencials',
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Correu electrònic',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4B66A6),
+                          ),
+                        ),
+                      ),
+                      style: GoogleFonts.roboto(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      obscureText: true,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Contrasenya',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4B66A6),
+                          ),
+                        ),
+                      ),
+                      style: GoogleFonts.roboto(),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: _handleLogin,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4B66A6),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        'Iniciar Sessió',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
+      ),
     );
   }
 
@@ -74,32 +134,17 @@ class _LoginPageState extends State<LoginPage> {
         email: _emailController.text,
         password: _passwordController.text,
       );
-
-      if (auth.user != null) {
-        final response = await Supabase.instance.client
-            .from('user_uuids')
-            .select('role')
-            .eq('user_uuid', auth.user!.id)
-            .single();
-
-        if (mounted) {
-          if (response['role'] == 'config') {
-            Navigator.pushReplacementNamed(
-                context, '/config'); // Cambiado de '/survey' a '/config'
-          } else if (response['role'] != null) {
-            Navigator.pushReplacementNamed(context, '/');
-          } else {
-            await Supabase.instance.client.auth.signOut();
-            Navigator.pushReplacementNamed(context, '/verification');
-          }
-        }
+      if (auth.user != null && mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error d\'inici de sessió: $e',
-                style: GoogleFonts.roboto()), // Mejorado el mensaje de error
+            content: Text(
+              'Error d\'inici de sessió: $e',
+              style: GoogleFonts.roboto(),
+            ),
             backgroundColor: Colors.red,
           ),
         );

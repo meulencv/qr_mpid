@@ -24,32 +24,106 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar-se')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              children: [
-                TextFormField(
-                  controller: _emailController,
-                  decoration:
-                      const InputDecoration(label: Text('Correu electrònic')),
-                  style: GoogleFonts.roboto(),
+      backgroundColor: const Color(0xFFF7F7F8),
+      appBar: AppBar(
+        title: Text(
+          'Registrar-se',
+          style: GoogleFonts.roboto(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      body: SafeArea(
+        child: _loading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 48),
+                    Text(
+                      'Crear compte nou',
+                      style: GoogleFonts.roboto(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF4B66A6),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Introdueix les teves dades',
+                      style: GoogleFonts.roboto(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        labelText: 'Correu electrònic',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4B66A6),
+                          ),
+                        ),
+                      ),
+                      style: GoogleFonts.roboto(),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      obscureText: true,
+                      controller: _passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Contrasenya',
+                        filled: true,
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF4B66A6),
+                          ),
+                        ),
+                      ),
+                      style: GoogleFonts.roboto(),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: _handleSignup,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4B66A6),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 2,
+                      ),
+                      child: Text(
+                        'Crear Compte',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  obscureText: true,
-                  controller: _passwordController,
-                  decoration: const InputDecoration(label: Text('Contrasenya')),
-                  style: GoogleFonts.roboto(),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _handleSignup,
-                  child: const Text('Crear Compte', style: TextStyle(fontFamily: 'Roboto')),
-                ),
-              ],
-            ),
+              ),
+      ),
     );
   }
 
