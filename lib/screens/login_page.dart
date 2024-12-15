@@ -10,7 +10,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  bool _loading = false;
+  bool _isLoading = false;
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
@@ -35,7 +35,7 @@ class _LoginPageState extends State<LoginPage> {
         iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SafeArea(
-        child: _loading
+        child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: _handleLogin,
+                      onPressed: _signIn,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF4B66A6),
                         foregroundColor: Colors.white,
@@ -127,30 +127,41 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Future<void> _handleLogin() async {
-    setState(() => _loading = true);
+  Future<void> _signIn() async {
+    setState(() => _isLoading = true);
     try {
-      final auth = await Supabase.instance.client.auth.signInWithPassword(
+      final response = await Supabase.instance.client.auth.signInWithPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
-      if (auth.user != null && mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+
+      if (response.user != null && mounted) {
+        // Obtener el rol del usuario
+        final roleResponse = await Supabase.instance.client
+            .from('user_uuids')
+            .select('role')
+            .eq('user_uuid', response.user!.id)
+            .single();
+
+        if (mounted) {
+          if (roleResponse['role'] == 'config') {
+            Navigator.pushReplacementNamed(context, '/config');
+          } else {
+            Navigator.pushReplacementNamed(context, '/menu');
+          }
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Error d\'inici de sessió: $e',
-              style: GoogleFonts.roboto(),
-            ),
+            content: Text('Error: ${e.toString()}'),
             backgroundColor: Colors.red,
           ),
         );
       }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 }
