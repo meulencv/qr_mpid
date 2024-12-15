@@ -122,7 +122,7 @@ class _ConfigPageState extends State<ConfigPage> {
       try {
         final userId = Supabase.instance.client.auth.currentUser!.id;
         final uuid = const Uuid().v4();
-        _qrUuid = 'https://technologiescv.com/wapp/qr?UID=$uuid';
+        _qrUuid = 'https://technologiescv.com/wapp/qr-mpid?UID=$uuid';
         _accessCode = _generateAccessCode();
 
         final response = await Supabase.instance.client
