@@ -492,14 +492,32 @@ Resposta en català, format estructurat.
   Future<void> _handleChatMessage(String message) async {
     if (message.trim().isEmpty) return;
 
+    // Formatear los datos relevantes del paciente
+    String patientContext = '';
+    if (_patientData != null) {
+      final birthDate = DateTime.parse(_patientData!['birth_date']);
+      final age = DateTime.now().difference(birthDate).inDays ~/ 365;
+      
+      patientContext = '''
+DADES RELLEVANTS DEL PACIENT:
+- Edat: $age anys
+- Sexe: ${_patientData!['sex']}
+- Tipus d'EPI: ${_patientData!['epi_type']}
+${_patientData!['other_epi_type'] != null ? '- Altres tipus d\'EPI: ${_patientData!['other_epi_type']}' : ''}
+- Causes seleccionades: ${(_patientData!['selected_causes'] as List).join(', ')}
+${_patientData!['other_cause'] != null ? '- Altres causes: ${_patientData!['other_cause']}' : ''}
+- Tractament actual: ${_patientData!['treatment']}
+- Immunosupressió: ${_patientData!['immunosuppression'] ? 'Sí' : 'No'}
+${_patientData!['has_comorbidities'] ? '- Comorbiditats: ${_patientData!['comorbidities']}' : '- No presenta comorbiditats'}
+${_patientData!['drug_allergies'] != null ? '- Al·lèrgies a medicaments: ${_patientData!['drug_allergies']}' : '- No presenta al·lèrgies medicamentoses'}
+''';
+    }
+
     setState(() {
       chatMessages.add('USUARI:\n\n$message');
     });
 
-    // Obtener los tratamientos de Supabase (que ya contienen el árbol de decisiones)
     final treatments = await _getTreatments();
-
-    // Formatear los tratamientos y su árbol de decisiones
     String treatmentsData = treatments.map((t) => '''
 Diagnòstic: ${t['diagnostic']}
 Tractament: ${t['tractament']}
@@ -507,29 +525,28 @@ Recomanacions: ${t['recomendaciones'] ?? 'No especificades'}
 Gravetat: ${t['gravedad'] ?? 'No especificada'}
 ''').join('\n---\n');
 
-    // Crear el prompt para la IA incluyendo todo el contexto
     String prompt = '''
-CONTEXT IMPORTANT: El pacient té MPID (Malaltia Pulmonar Intersticial Difusa). Totes les recomanacions i respostes han de tenir en compte aquesta condició base.
+CONTEXT DEL PACIENT AMB MPID:
+$patientContext
 
-Com a assistent mèdic especialitzat en MPID, tenint en compte:
-
-1. El pacient té MPID com a condició base
-2. L'historial complet del pacient:
+HISTÒRIC DE LA CONSULTA:
 ${chatMessages.join('\n')}
 
-3. Els tractaments i protocols disponibles específics per a pacients amb MPID:
+TRACTAMENTS DISPONIBLES:
 $treatmentsData
 
-4. La pregunta o comentari del metge:
+CONSULTA ACTUAL:
 $message
 
-Proporciona una resposta breu i concisa en català, considerant sempre que el pacient té MPID com a condició principal. Utilitza el coneixement de:
-- La taula de proves mèdiques adaptades per a MPID
-- Els tractaments disponibles i les seves recomanacions específiques per a MPID
-- Els símptomes i diagnòstics anteriors en el context de MPID
-- El context complet del pacient amb MPID
+Proporciona una resposta en català tenint en compte:
+1. L'edat i el sexe del pacient
+2. El tipus específic d'EPI i les seves causes
+3. El tractament actual i possibles interaccions
+4. La presència d'immunosupressió
+5. Les comorbiditats i al·lèrgies existents
+6. L'historial de la consulta actual
 
-Resposta màxima 3-4 línies.
+Resposta màxima 3-4 línies, prioritzant la seguretat del pacient i les seves condicions específiques.
 ''';
 
     try {
@@ -556,6 +573,36 @@ Resposta màxima 3-4 línies.
       }
     } catch (e) {
       developer.log('Error in chat response: $e');
+    }
+  }
+
+  Map<String, dynamic>? _patientData;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPatientData();
+  }
+
+  String? _getUIDFromUrl() {
+    final uri = Uri.base;
+    return uri.queryParameters['UID'];
+  }
+
+  Future<void> _loadPatientData() async {
+    final uid = _getUIDFromUrl();
+    if (uid == null) return;
+
+    try {
+      final response = await Supabase.instance.client
+          .from('patient_data')
+          .select()
+          .eq('qr_uuid', uid)
+          .single();
+
+      setState(() => _patientData = response);
+    } catch (e) {
+      developer.log('Error loading patient data: $e');
     }
   }
 
