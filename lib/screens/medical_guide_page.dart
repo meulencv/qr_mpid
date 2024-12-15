@@ -58,7 +58,7 @@ class _ChatMessagesState extends State<ChatMessages> {
   bool _isLoading = false; // Añadir esta variable de estado
 
   final String apiKey =
-      'Br-FN7RQSitgDy47RrOCYujSvo5mtlBgtsJEg1CiDZnOun1hFWa'; // Reemplaza con tu API key de Straico
+      'Gr-cRHppfMZUTdG1IKksLhJQ4Nq96lPW12BEZqLmxDc4b5GsQ9h'; // Reemplaza con tu API key de Straico
 
   final List<String> symptomsList = [
     'Tos persistent (seca)',
@@ -1237,13 +1237,12 @@ class UserMessage extends StatelessWidget {
     bool isUserMessage = text.startsWith('USUARI:');
     bool isAssistantMessage = text.startsWith('ASSISTENT:');
     bool isSystemMessage = !isUserMessage && !isAssistantMessage;
-    bool isEmptyAssistantMessage = isAssistantMessage && text.trim() == 'ASSISTENT:';
+    bool isEmptyAssistantMessage =
+        isAssistantMessage && text.trim() == 'ASSISTENT:';
 
     // No mostrar el mensaje si es un mensaje vacío del asistente
     if (isEmptyAssistantMessage) {
-      return showTyping 
-          ? _buildTypingIndicator()
-          : const SizedBox.shrink();
+      return showTyping ? _buildTypingIndicator() : const SizedBox.shrink();
     }
 
     if (isSystemMessage) {
