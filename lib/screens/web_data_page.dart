@@ -59,13 +59,16 @@ class _WebDataPageState extends State<WebDataPage> {
       backgroundColor: Color(0xFFF5F5F7),
       appBar: AppBar(
         elevation: 0,
-        title: Text('Dades del Pacient',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w500,
-              fontSize: 18,
-            )),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black87,
+        title: Text(
+          'Dades del Pacient',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w500,
+            fontSize: 18,
+            color: Colors.white, // Aseguramos que el texto sea blanco
+          ),
+        ),
+        backgroundColor: Color(0xFF304982), // Usamos el color primario en lugar de transparente
+        foregroundColor: Colors.white, // Aseguramos que los iconos sean blancos
       ),
       body: _loading
           ? Center(

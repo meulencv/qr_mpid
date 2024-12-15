@@ -237,8 +237,33 @@ class BaseQuestionScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
-        // Eliminamos el título del AppBar
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(
+            Icons.home_outlined,
+            color: Color(0xFF304982),
+            size: 28,
+          ),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MaterialApp(
+                  theme: ThemeData(
+                    primaryColor: Color(0xFF304982),
+                    appBarTheme: AppBarTheme(
+                      backgroundColor: Color(0xFF304982),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                  ),
+                  home: WebDataPage(),
+                ),
+              ),
+              (route) => false,
+            );
+          },
+        ),
       ),
       body: Column(
         children: [
