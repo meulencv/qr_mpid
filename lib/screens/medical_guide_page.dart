@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:ui'; // Añadir esta importación para ImageFilter
 import 'package:supabase_flutter/supabase_flutter.dart'; // Añade esta importación
+import 'package:google_fonts/google_fonts.dart'; // Añadir esta importación
 
 class MedicalGuidePage extends StatelessWidget {
   const MedicalGuidePage({Key? key}) : super(key: key);
@@ -13,7 +14,10 @@ class MedicalGuidePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F7F8),
       appBar: AppBar(
-        title: const Text('Xat Mèdic'),
+        title: Text(
+          'Guia Mèdica (AI)',
+          style: GoogleFonts.roboto(), // Aplicar fuente Roboto
+        ),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 1,
@@ -584,9 +588,10 @@ Resposta màxima 3-4 línies.
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Selecciona i omple les dades disponibles:',
-                        style: TextStyle(fontSize: 16),
+                        style: GoogleFonts.roboto(
+                            fontSize: 16), // Aplicar fuente Roboto
                       ),
                       const SizedBox(height: 16),
                       ...checkItems.map((item) => MedicalChecklistItem(
@@ -608,7 +613,8 @@ Resposta màxima 3-4 línies.
                       ElevatedButton(
                         onPressed: _sendData,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
+                          backgroundColor: const Color(
+                              0xFF4B66A6), // Color principal actualizado
                           minimumSize: const Size(double.infinity, 45),
                           foregroundColor: Colors.white, // Añadir esto
                         ),
@@ -636,7 +642,8 @@ Resposta màxima 3-4 línies.
                                 symptoms[symptom] = value ?? false;
                               });
                             },
-                            activeColor: const Color(0xFF4B66A6), // Color principal actualizado
+                            activeColor: const Color(
+                                0xFF4B66A6), // Color principal actualizado
                           )),
                       if (symptoms['Altres'] ?? false)
                         Padding(
@@ -670,7 +677,8 @@ Resposta màxima 3-4 línies.
                       ElevatedButton(
                         onPressed: _sendSymptoms,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
+                          backgroundColor: const Color(
+                              0xFF4B66A6), // Color principal actualizado
                           minimumSize: const Size(double.infinity, 45),
                           foregroundColor: Colors.white, // Añadir esto
                         ),
@@ -704,7 +712,8 @@ Resposta màxima 3-4 línies.
                           onPressed: () =>
                               setState(() => showDiagnosisForm = true),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
+                            backgroundColor: const Color(
+                                0xFF4B66A6), // Color principal actualizado
                             minimumSize: const Size(double.infinity, 45),
                             foregroundColor: Colors.white, // Añadir esto
                           ),
@@ -745,7 +754,8 @@ Resposta màxima 3-4 línies.
                             child: ElevatedButton(
                               onPressed: _sendDiagnosis,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
+                                backgroundColor: const Color(
+                                    0xFF4B66A6), // Color principal actualizado
                                 minimumSize: const Size(double.infinity, 45),
                                 foregroundColor: Colors.white, // Añadir esto
                               ),
@@ -846,10 +856,10 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
               Expanded(
                 child: Text(
                   widget.test['nom_prova'] ?? 'Prova sense nom',
-                  style: const TextStyle(
+                  style: GoogleFonts.roboto(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                  ),
+                  ), // Aplicar fuente Roboto
                 ),
               ),
               Row(
@@ -920,8 +930,10 @@ class _MedicalTestCardState extends State<MedicalTestCard> {
                   widget.onResultSubmit(
                       widget.test['nom_prova'], _resultController.text);
                 },
-                style: ElevatedButton.styleFrom( // Añadir esto
-                  backgroundColor: const Color(0xFF4B66A6), // Color principal actualizado
+                style: ElevatedButton.styleFrom(
+                  // Añadir esto
+                  backgroundColor:
+                      const Color(0xFF4B66A6), // Color principal actualizado
                   foregroundColor: Colors.white,
                 ), // Añadir esto
                 child: const Text('Enviar resultats'),
@@ -987,7 +999,10 @@ class _MedicalChecklistItemState extends State<MedicalChecklistItem> {
     return Column(
       children: [
         CheckboxListTile(
-          title: Text('${widget.item.title} (${widget.item.unit})'),
+          title: Text(
+            '${widget.item.title} (${widget.item.unit})',
+            style: GoogleFonts.roboto(), // Aplicar fuente Roboto
+          ),
           value: widget.isExpanded,
           onChanged: (bool? value) => widget.onChanged(value ?? false),
           activeColor: const Color(0xFF4B66A6), // Color principal actualizado
@@ -1066,12 +1081,14 @@ class SystemMessage extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF4B66A6).withOpacity(0.1), // Color principal actualizado
+                            color: const Color(0xFF4B66A6).withOpacity(
+                                0.1), // Color principal actualizado
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.medical_services_outlined,
-                            color: Color(0xFF4B66A6), // Color principal actualizado
+                            color: Color(
+                                0xFF4B66A6), // Color principal actualizado
                             size: 20,
                           ),
                         ),
@@ -1079,11 +1096,11 @@ class SystemMessage extends StatelessWidget {
                         Expanded(
                           child: Text(
                             title!,
-                            style: const TextStyle(
+                            style: GoogleFonts.roboto(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: Color(0xFF2D2D2D),
-                            ),
+                            ), // Aplicar fuente Roboto
                           ),
                         ),
                       ],
@@ -1146,7 +1163,8 @@ class UserMessage extends StatelessWidget {
             decoration: BoxDecoration(
               color: isUserMessage
                   ? const Color(0xFF4B66A6) // Color principal actualizado
-                  : const Color(0xFF5B76B6), // Variación más clara del color principal
+                  : const Color(
+                      0xFF5B76B6), // Variación más clara del color principal
               borderRadius: BorderRadius.only(
                 topLeft: const Radius.circular(20),
                 topRight: const Radius.circular(20),
@@ -1169,21 +1187,21 @@ class UserMessage extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       isUserMessage ? 'Tu' : 'Assistent',
-                      style: TextStyle(
+                      style: GoogleFonts.roboto(
                         color: Colors.white.withOpacity(0.8),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                      ),
+                      ), // Aplicar fuente Roboto
                     ),
                   ),
                 Text(
                   text.replaceFirst(
                       isUserMessage ? 'USUARI:\n\n' : 'ASSISTENT:\n\n', ''),
-                  style: const TextStyle(
+                  style: GoogleFonts.roboto(
                     fontSize: 14,
                     color: Colors.white,
                     height: 1.5,
-                  ),
+                  ), // Aplicar fuente Roboto
                 ),
               ],
             ),
@@ -1238,12 +1256,13 @@ class ChatInput extends StatelessWidget {
                       decoration: InputDecoration(
                         hintText: 'Escriu un missatge...',
                         border: InputBorder.none,
-                        hintStyle: TextStyle(
-                            color:
-                                Colors.grey.shade600), // Hint text más oscuro
+                        hintStyle: GoogleFonts.roboto(
+                          color: Colors.grey.shade600,
+                        ), // Aplicar fuente Roboto
                       ),
-                      style: TextStyle(
-                          color: Colors.grey.shade800), // Texto más oscuro
+                      style: GoogleFonts.roboto(
+                        color: Colors.grey.shade800,
+                      ), // Aplicar fuente Roboto
                       maxLines: null,
                     ),
                   ),
@@ -1262,7 +1281,8 @@ class ChatInput extends StatelessWidget {
                         padding: const EdgeInsets.all(12),
                         child: const Icon(
                           Icons.send_rounded,
-                          color: Color(0xFF4B66A6), // Color principal actualizado
+                          color:
+                              Color(0xFF4B66A6), // Color principal actualizado
                         ),
                       ),
                     ),
