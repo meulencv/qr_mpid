@@ -147,20 +147,23 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Si es web, mostrar página en blanco
     if (kIsWeb) {
       return const Scaffold(body: SizedBox.shrink());
     }
 
-    // El resto del código existente para móvil
     if (savedQrUuid != null) {
       return Scaffold(
+        backgroundColor: const Color(0xFFF7F7F8),
         appBar: AppBar(
-          title: const Text('QR Guardat',
-              style: TextStyle(color: Color(0xFF4b66a6))),
+          title: Text(
+            'QR Guardat',
+            style: GoogleFonts.roboto(color: Colors.black),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 1,
           actions: [
             IconButton(
-              icon: const Icon(Icons.logout),
+              icon: const Icon(Icons.logout, color: Colors.black),
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.remove('saved_qr_uuid');
@@ -178,20 +181,46 @@ class _HomePageState extends State<HomePage> {
               Container(
                 width: 250,
                 height: 250,
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: QrImageView(
-                  data: savedQrFullUrl!, // Usar la URL completa original
+                  data: savedQrFullUrl!,
                   version: QrVersions.auto,
                   size: 250.0,
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
-                'URL: $savedQrFullUrl', // Mostrar la URL completa
-                style: const TextStyle(fontSize: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  'URL: $savedQrFullUrl',
+                  style: GoogleFonts.roboto(fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),
@@ -200,55 +229,122 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      body: Center(
+      backgroundColor: const Color(0xFFF7F7F8),
+      body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'La Meva App',
-                style: GoogleFonts.roboto(
-                  // Use Google Fonts
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF4b66a6),
-                ),
-              ),
               const SizedBox(height: 48),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/signup'),
-                  child: const Text('Crear Compte'),
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 4,
-                    child: SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pushNamed(context, '/login'),
-                        child: const Text('Iniciar Sessió'),
+                child: Column(
+                  children: [
+                    Text(
+                      'QR-MPID',
+                      style: GoogleFonts.roboto(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF4B66A6),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 1,
-                    child: SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => _scanQR(context),
-                        child: const Icon(Icons.qr_code),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Gestió de pacients',
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(context, '/signup'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF4B66A6),
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        'Crear Compte',
+                        style: GoogleFonts.roboto(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 4,
+                          child: ElevatedButton(
+                            onPressed: () =>
+                                Navigator.pushNamed(context, '/login'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF4B66A6),
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(
+                                  color: Color(0xFF4B66A6),
+                                  width: 1,
+                                ),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'Iniciar Sessió',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 1,
+                          child: ElevatedButton(
+                            onPressed: () => _scanQR(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF4B66A6),
+                              minimumSize: const Size(50, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(
+                                  color: Color(0xFF4B66A6),
+                                  width: 1,
+                                ),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Icon(Icons.qr_code),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
