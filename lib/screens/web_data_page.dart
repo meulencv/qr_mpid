@@ -59,16 +59,28 @@ class _WebDataPageState extends State<WebDataPage> {
       backgroundColor: Color(0xFFF5F5F7),
       appBar: AppBar(
         elevation: 0,
-        title: Text(
-          'Dades del Pacient',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w500,
-            fontSize: 18,
-            color: Colors.white, // Aseguramos que el texto sea blanco
-          ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.start, // Cambiado a start
+          children: [
+            Image.asset(
+              'assets/Logo_QRes.png',
+              height: 60,
+              fit: BoxFit.contain,
+              filterQuality: FilterQuality.high,
+            ),
+            SizedBox(width: 12), // Añadido espaciado entre logo y texto
+            Text(
+              'Dades del Pacient',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w500,
+                fontSize: 18,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
-        backgroundColor: Color(0xFF304982), // Usamos el color primario en lugar de transparente
-        foregroundColor: Colors.white, // Aseguramos que los iconos sean blancos
+        backgroundColor: Color(0xFF304982),
+        foregroundColor: Colors.white,
       ),
       body: _loading
           ? Center(
@@ -169,7 +181,7 @@ class _WebDataPageState extends State<WebDataPage> {
 
   Widget _buildPatientCard() {
     final isSmallScreen = MediaQuery.of(context).size.width <= 600;
-    
+
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: isSmallScreen ? 16 : 24,
@@ -239,7 +251,7 @@ class _WebDataPageState extends State<WebDataPage> {
           Divider(height: 1, thickness: 1, color: Colors.grey[100]),
           Padding(
             padding: EdgeInsets.all(16),
-            child: isSmallScreen 
+            child: isSmallScreen
                 ? Column(
                     children: [
                       _buildActionButton(
