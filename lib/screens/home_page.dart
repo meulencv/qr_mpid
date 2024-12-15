@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Añadir si no está ya incluida
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_fonts/google_fonts.dart'; // Import Google Fonts
+import 'package:confetti/confetti.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   // Cambiar a StatefulWidget
@@ -15,13 +17,22 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  late ConfettiController _confettiController;
   String? savedQrUuid;
   String? savedQrFullUrl; // Variable para guardar la URL completa
 
   @override
   void initState() {
     super.initState();
+    _confettiController =
+        ConfettiController(duration: const Duration(seconds: 3));
     _loadSavedQR();
+  }
+
+  @override
+  void dispose() {
+    _confettiController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadSavedQR() async {
@@ -96,6 +107,7 @@ class _HomePageState extends State<HomePage> {
                 savedQrUuid = qrUuid;
                 savedQrFullUrl = result; // Actualizar URL completa en el estado
               });
+              _confettiController.play();
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Accés concedit')),
               );
@@ -122,27 +134,72 @@ class _HomePageState extends State<HomePage> {
       builder: (context) {
         String password = '';
         return AlertDialog(
-          title: const Text('Introdueix la contrasenya'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white,
+          title: Text(
+            'Introdueix la contrasenya',
+            style: GoogleFonts.roboto(
+              color: const Color(0xFF4B66A6),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: TextField(
             obscureText: true,
             onChanged: (value) => password = value,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               hintText: 'Contrasenya',
+              hintStyle: GoogleFonts.roboto(color: Colors.grey[600]),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFF4B66A6)),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel·lar'),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.grey[600],
+              ),
+              child: Text(
+                'Cancel·lar',
+                style: GoogleFonts.roboto(),
+              ),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.pop(context, password),
-              child: const Text('Verificar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4B66A6),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                elevation: 0,
+              ),
+              child: Text(
+                'Verificar',
+                style: GoogleFonts.roboto(),
+              ),
             ),
           ],
+          actionsPadding: const EdgeInsets.all(16),
         );
       },
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   @override
@@ -154,72 +211,115 @@ class _HomePageState extends State<HomePage> {
     if (savedQrUuid != null) {
       return Scaffold(
         backgroundColor: const Color(0xFFF7F7F8),
-        appBar: AppBar(
-          title: Text(
-            'QR Guardat',
-            style: GoogleFonts.roboto(color: Colors.black),
-          ),
-          backgroundColor: Colors.white,
-          elevation: 1,
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout, color: Colors.black),
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('saved_qr_uuid');
-                setState(() {
-                  savedQrUuid = null;
-                });
-              },
-            ),
-          ],
-        ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        body: SafeArea(
+          child: Stack(
             children: [
-              Container(
-                width: 250,
-                height: 250,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: QrImageView(
-                  data: savedQrFullUrl!,
-                  version: QrVersions.auto,
-                  size: 250.0,
+              // Botón de cerrar sesión en la esquina superior derecha
+              Positioned(
+                top: 16,
+                right: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.logout, color: Colors.black),
+                  onPressed: () async {
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.remove('saved_qr_uuid');
+                    setState(() {
+                      savedQrUuid = null;
+                    });
+                  },
                 ),
               ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+              // Contenido central (QR y UUID)
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'QR-MPID',
+                      style: GoogleFonts.roboto(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF4B66A6),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    GestureDetector(
+                      onTap: () => _launchURL(savedQrFullUrl!),
+                      child: Container(
+                        width: 250,
+                        height: 250,
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: QrImageView(
+                          data: savedQrFullUrl!,
+                          version: QrVersions.auto,
+                          size: 250.0,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.symmetric(horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            spreadRadius: 1,
+                            blurRadius: 10,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Text(
+                        'UUID: ${savedQrUuid}',
+                        style: GoogleFonts.roboto(fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Codi QR d\'identificació i seguiment assistencial',
+                      style: GoogleFonts.roboto(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-                child: Text(
-                  'URL: $savedQrFullUrl',
-                  style: GoogleFonts.roboto(fontSize: 14),
-                  textAlign: TextAlign.center,
+              ),
+              // Confetti en la parte superior
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  particleDrag: 0.05,
+                  emissionFrequency: 0.05,
+                  numberOfParticles: 20,
+                  gravity: 0.05,
+                  shouldLoop: false,
+                  colors: const [
+                    Colors.blue,
+                    Colors.red,
+                    Colors.yellow,
+                    Colors.green,
+                  ],
                 ),
               ),
             ],
