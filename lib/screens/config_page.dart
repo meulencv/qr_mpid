@@ -369,12 +369,7 @@ class _ConfigPageState extends State<ConfigPage> {
                     _buildTextField(
                       controller: _healthCardController,
                       label: 'Número de Targeta Sanitària',
-                      validator: (value) {
-                        if (value?.isEmpty ?? true) return 'Camp obligatori';
-                        if (value!.length != 14)
-                          return 'Ha de tenir 14 caràcters';
-                        return null;
-                      },
+                      validator: _validator, // Usa el validador simple que solo verifica que no esté vacío
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
