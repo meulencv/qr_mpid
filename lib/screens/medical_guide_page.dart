@@ -55,6 +55,7 @@ class _ChatMessagesState extends State<ChatMessages> {
   bool diagnosesShown = false; // Añadir esta variable
   bool diagnosisCompleted = false; // Añadir esta variable
   bool treatmentShown = false; // Añade esta variable de estado
+  bool _isLoading = false; // Añadir esta variable de estado
 
   final String apiKey =
       'Br-FN7RQSitgDy47RrOCYujSvo5mtlBgtsJEg1CiDZnOun1hFWa'; // Reemplaza con tu API key de Straico
@@ -123,6 +124,12 @@ class _ChatMessagesState extends State<ChatMessages> {
   }
 
   Future<void> _sendToApi(String prompt) async {
+    setState(() {
+      _isLoading = true;
+      // Añadir mensaje temporal para mostrar los puntos de escritura
+      chatMessages.add('ASSISTENT:\n\n');
+    });
+
     try {
       final response = await http.post(
         Uri.parse('https://api.straico.com/v0/prompt/completion'),
@@ -148,6 +155,7 @@ class _ChatMessagesState extends State<ChatMessages> {
           try {
             final List<dynamic> parsedTests = jsonDecode(jsonString!);
             setState(() {
+              chatMessages.removeLast(); // Eliminar mensaje temporal
               medicalTests.clear(); // Limpiar tests anteriores
               medicalTests.addAll(
                   parsedTests.map((test) => Map<String, dynamic>.from(test)));
@@ -163,6 +171,10 @@ class _ChatMessagesState extends State<ChatMessages> {
       }
     } catch (e) {
       developer.log('Error in API call: $e');
+      setState(() => chatMessages
+          .removeLast()); // Eliminar mensaje temporal en caso de error
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -373,6 +385,7 @@ Respon únicament en aquest format JSON:
   }
 
   Future<void> _getDiagnosisSuggestion() async {
+    setState(() => _isLoading = true);
     String prompt = '''
 Tenint en compte les dades del pacient amb MPID:
 ${chatMessages.join('\n')}
@@ -406,6 +419,8 @@ Resposta en català, màxim 3-4 línies.
       }
     } catch (e) {
       developer.log('Error getting diagnosis suggestion: $e');
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -428,8 +443,10 @@ Resposta en català, màxim 3-4 línies.
 
     setState(() {
       chatMessages.add('DIAGNÒSTIC FINAL:\n\n${_diagnosisController.text}');
+      chatMessages.add('ASSISTENT:\n\n'); // Añadir mensaje temporal
       showDiagnosisForm = false;
       diagnosisCompleted = true;
+      _isLoading = true;
     });
 
     // Obtener los tratamientos de Supabase
@@ -479,12 +496,16 @@ Resposta en català, format estructurat.
             data['data']['completion']['choices'][0]['message']['content'];
 
         setState(() {
+          chatMessages.removeLast(); // Eliminar mensaje temporal
           chatMessages.add('RECOMANACIÓ DE TRACTAMENT:\n\n$treatment');
           treatmentShown = true;
         });
       }
     } catch (e) {
       developer.log('Error getting treatment recommendation: $e');
+      setState(() => chatMessages.removeLast());
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -497,7 +518,7 @@ Resposta en català, format estructurat.
     if (_patientData != null) {
       final birthDate = DateTime.parse(_patientData!['birth_date']);
       final age = DateTime.now().difference(birthDate).inDays ~/ 365;
-      
+
       patientContext = '''
 DADES RELLEVANTS DEL PACIENT:
 - Edat: $age anys
@@ -515,6 +536,9 @@ ${_patientData!['drug_allergies'] != null ? '- Al·lèrgies a medicaments: ${_pa
 
     setState(() {
       chatMessages.add('USUARI:\n\n$message');
+      // Añadimos un mensaje temporal del asistente que mostrará los puntos
+      chatMessages.add('ASSISTENT:\n\n');
+      _isLoading = true;
     });
 
     final treatments = await _getTreatments();
@@ -568,11 +592,19 @@ Resposta màxima 3-4 línies, prioritzant la seguretat del pacient i les seves c
             data['data']['completion']['choices'][0]['message']['content'];
 
         setState(() {
+          // Reemplazamos el último mensaje (que era el temporal) con la respuesta real
+          chatMessages.removeLast();
           chatMessages.add('ASSISTENT:\n\n${aiResponse.trim()}');
         });
       }
     } catch (e) {
       developer.log('Error in chat response: $e');
+      setState(() {
+        // En caso de error, removemos el mensaje temporal
+        chatMessages.removeLast();
+      });
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -628,7 +660,11 @@ Resposta màxima 3-4 línies, prioritzant la seguretat del pacient i les seves c
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              ...chatMessages.map((message) => UserMessage(text: message)),
+              ...chatMessages.map((message) => UserMessage(
+                    text: message,
+                    showTyping: message.startsWith('ASSISTENT:') &&
+                        (message.trim() == 'ASSISTENT:' || _isLoading),
+                  )),
               if (showForm)
                 SystemMessage(
                   title: "Sistema d'Assistència Monitoritzada per IA",
@@ -810,14 +846,31 @@ Resposta màxima 3-4 línies, prioritzant la seguretat del pacient i les seves c
                             ),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: _getDiagnosisSuggestion,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[200],
-                              minimumSize: const Size(45, 45),
+                          Container(
+                            width: 45,
+                            height: 45,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[200],
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Icon(Icons.psychology,
-                                color: Colors.black54),
+                            child: IconButton(
+                              onPressed:
+                                  _isLoading ? null : _getDiagnosisSuggestion,
+                              icon: _isLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                          const Color(0xFF4B66A6),
+                                        ),
+                                      ),
+                                    )
+                                  : const Icon(Icons.psychology,
+                                      color: Colors.black54),
+                            ),
                           ),
                         ],
                       ),
@@ -827,8 +880,7 @@ Resposta màxima 3-4 línies, prioritzant la seguretat del pacient i les seves c
             ],
           ),
         ),
-        if (treatmentShown)
-          const ChatInput(), // Mostrar ChatInput si treatmentShown es verdadero
+        if (treatmentShown) const ChatInput(),
       ],
     );
   }
@@ -1172,14 +1224,27 @@ class SystemMessage extends StatelessWidget {
 
 class UserMessage extends StatelessWidget {
   final String text;
+  final bool showTyping;
 
-  const UserMessage({Key? key, required this.text}) : super(key: key);
+  const UserMessage({
+    Key? key,
+    required this.text,
+    this.showTyping = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     bool isUserMessage = text.startsWith('USUARI:');
     bool isAssistantMessage = text.startsWith('ASSISTENT:');
     bool isSystemMessage = !isUserMessage && !isAssistantMessage;
+    bool isEmptyAssistantMessage = isAssistantMessage && text.trim() == 'ASSISTENT:';
+
+    // No mostrar el mensaje si es un mensaje vacío del asistente
+    if (isEmptyAssistantMessage) {
+      return showTyping 
+          ? _buildTypingIndicator()
+          : const SizedBox.shrink();
+    }
 
     if (isSystemMessage) {
       return SystemMessage(
@@ -1190,69 +1255,127 @@ class UserMessage extends StatelessWidget {
       );
     }
 
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: isUserMessage ? const Offset(1, 0) : const Offset(-1, 0),
-        end: Offset.zero,
-      ).animate(CurvedAnimation(
-        parent: ModalRoute.of(context)!.animation!,
-        curve: Curves.easeOutQuart,
-      )),
-      child: Align(
-        alignment: isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
-          ),
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isUserMessage
-                  ? const Color(0xFF4B66A6) // Color principal actualizado
-                  : const Color(
-                      0xFF5B76B6), // Variación más clara del color principal
-              borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(20),
-                topRight: const Radius.circular(20),
-                bottomLeft: Radius.circular(isUserMessage ? 20 : 5),
-                bottomRight: Radius.circular(isUserMessage ? 5 : 20),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SlideTransition(
+          position: Tween<Offset>(
+            begin: isUserMessage ? const Offset(1, 0) : const Offset(-1, 0),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: ModalRoute.of(context)!.animation!,
+            curve: Curves.easeOutQuart,
+          )),
+          child: Align(
+            alignment:
+                isUserMessage ? Alignment.centerRight : Alignment.centerLeft,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.8,
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isUserMessage
+                      ? const Color(0xFF4B66A6) // Color principal actualizado
+                      : const Color(
+                          0xFF5B76B6), // Variación más clara del color principal
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(20),
+                    topRight: const Radius.circular(20),
+                    bottomLeft: Radius.circular(isUserMessage ? 20 : 5),
+                    bottomRight: Radius.circular(isUserMessage ? 5 : 20),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 5,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isUserMessage || isAssistantMessage)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(
-                      isUserMessage ? 'Tu' : 'Assistent',
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isUserMessage || isAssistantMessage)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          isUserMessage ? 'Tu' : 'Assistent',
+                          style: GoogleFonts.roboto(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ), // Aplicar fuente Roboto
+                        ),
+                      ),
+                    Text(
+                      text.replaceFirst(
+                          isUserMessage ? 'USUARI:\n\n' : 'ASSISTENT:\n\n', ''),
                       style: GoogleFonts.roboto(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.white,
+                        height: 1.5,
                       ), // Aplicar fuente Roboto
                     ),
-                  ),
-                Text(
-                  text.replaceFirst(
-                      isUserMessage ? 'USUARI:\n\n' : 'ASSISTENT:\n\n', ''),
-                  style: GoogleFonts.roboto(
-                    fontSize: 14,
-                    color: Colors.white,
-                    height: 1.5,
-                  ), // Aplicar fuente Roboto
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
+        ),
+        if (showTyping && !isUserMessage)
+          Padding(
+            padding: const EdgeInsets.only(left: 16, top: 4, bottom: 8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF5B76B6).withOpacity(0.7),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Escrivint',
+                    style: GoogleFonts.roboto(
+                      fontSize: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const TypingDotsIndicator(),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildTypingIndicator() {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, top: 4, bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF5B76B6).withOpacity(0.7),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Escrivint',
+              style: GoogleFonts.roboto(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const TypingDotsIndicator(),
+          ],
         ),
       ),
     );
@@ -1288,51 +1411,53 @@ class ChatInput extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFE8E8E8), // Cambiado a un gris más oscuro
+                color: const Color(0xFFE8E8E8),
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: Colors.grey.shade400, // Borde un poco más oscuro
-                ),
+                border: Border.all(color: Colors.grey.shade400),
               ),
               child: Row(
                 children: [
                   const SizedBox(width: 16),
                   Expanded(
                     child: TextField(
+                      enabled: !chatMessagesState._isLoading,
                       controller: chatMessagesState._chatController,
                       decoration: InputDecoration(
-                        hintText: 'Escriu un missatge...',
+                        hintText: chatMessagesState._isLoading
+                            ? 'L\'assistent està escrivint...'
+                            : 'Escriu un missatge...',
                         border: InputBorder.none,
                         hintStyle: GoogleFonts.roboto(
                           color: Colors.grey.shade600,
-                        ), // Aplicar fuente Roboto
+                        ),
                       ),
                       style: GoogleFonts.roboto(
                         color: Colors.grey.shade800,
-                      ), // Aplicar fuente Roboto
+                      ),
                       maxLines: null,
                     ),
                   ),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(25),
-                      onTap: () {
-                        final message = chatMessagesState._chatController.text;
-                        if (message.isNotEmpty) {
-                          chatMessagesState._handleChatMessage(message);
-                          chatMessagesState._chatController.clear();
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        child: const Icon(
-                          Icons.send_rounded,
-                          color:
-                              Color(0xFF4B66A6), // Color principal actualizado
-                        ),
-                      ),
-                    ),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    child: chatMessagesState._isLoading
+                        ? Container(
+                            padding: const EdgeInsets.all(8),
+                            child: const TypingDotsIndicator(),
+                          )
+                        : IconButton(
+                            icon: const Icon(
+                              Icons.send_rounded,
+                              color: Color(0xFF4B66A6),
+                            ),
+                            onPressed: () {
+                              final message =
+                                  chatMessagesState._chatController.text;
+                              if (message.isNotEmpty) {
+                                chatMessagesState._handleChatMessage(message);
+                                chatMessagesState._chatController.clear();
+                              }
+                            },
+                          ),
                   ),
                 ],
               ),
@@ -1340,6 +1465,69 @@ class ChatInput extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// Añadir esta clase para la animación de los puntos
+class TypingDotsIndicator extends StatefulWidget {
+  const TypingDotsIndicator({Key? key}) : super(key: key);
+
+  @override
+  State<TypingDotsIndicator> createState() => _TypingDotsIndicatorState();
+}
+
+class _TypingDotsIndicatorState extends State<TypingDotsIndicator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late List<Animation<double>> _animations;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+
+    _animations = List.generate(3, (index) {
+      return Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(
+          parent: _controller,
+          curve: Interval(
+            index * 0.2,
+            0.2 + index * 0.2,
+            curve: Curves.easeInOut,
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(3, (index) {
+        return FadeTransition(
+          opacity: _animations[index],
+          child: Container(
+            width: 6,
+            height: 6,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      }),
     );
   }
 }
